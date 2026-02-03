@@ -331,6 +331,23 @@
             font-style: italic;
         }
 
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.95em;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
         @media (max-width: 968px) {
             .content {
                 grid-template-columns: 1fr;
@@ -395,6 +412,9 @@
                 <ul class="country-list" id="completedList"></ul>
 
                 <h2 class="section-title">⏳ Countries Not Yet Done (<span id="notCompletedCount">0</span>)</h2>
+                <div class="search-box">
+                    <input type="text" id="countrySearch" placeholder="Search countries..." oninput="filterNotCompletedCountries()">
+                </div>
                 <ul class="country-list" id="notCompletedList"></ul>
 
                 <button class="btn btn-reset" onclick="resetAllData()">🗑️ Reset All Data</button>
@@ -701,20 +721,36 @@
             }
             
             // Update not completed list
+            renderNotCompletedList();
+        }
+
+        // Render not completed countries list
+        function renderNotCompletedList() {
             const notCompletedList = document.getElementById('notCompletedList');
             notCompletedList.innerHTML = '';
             
             const notCompleted = allCountries.filter(c => !dinnerData[c]);
             document.getElementById('notCompletedCount').textContent = notCompleted.length;
             
+            // Get search term
+            const searchTerm = document.getElementById('countrySearch').value.toLowerCase().trim();
+            
+            // Filter by search term if provided
+            let filteredCountries = notCompleted;
+            if (searchTerm) {
+                filteredCountries = notCompleted.filter(c => c.toLowerCase().includes(searchTerm));
+            }
+            
             if (notCompleted.length === 0) {
                 notCompletedList.innerHTML = '<li class="empty-state">All countries completed! 🎉</li>';
             } else if (allCountries.length === 0) {
                 notCompletedList.innerHTML = '<li class="empty-state">Loading countries...</li>';
+            } else if (filteredCountries.length === 0) {
+                notCompletedList.innerHTML = '<li class="empty-state">No countries match your search</li>';
             } else {
                 // Show first 50 countries to avoid overwhelming the UI
                 const displayLimit = 50;
-                notCompleted.slice(0, displayLimit).forEach(countryName => {
+                filteredCountries.slice(0, displayLimit).forEach(countryName => {
                     const li = document.createElement('li');
                     li.className = 'country-item';
                     li.style.cursor = 'pointer';
@@ -727,13 +763,18 @@
                     notCompletedList.appendChild(li);
                 });
                 
-                if (notCompleted.length > displayLimit) {
+                if (filteredCountries.length > displayLimit) {
                     const li = document.createElement('li');
                     li.className = 'empty-state';
-                    li.innerHTML = `...and ${notCompleted.length - displayLimit} more countries`;
+                    li.innerHTML = `...and ${filteredCountries.length - displayLimit} more countries`;
                     notCompletedList.appendChild(li);
                 }
             }
+        }
+
+        // Filter not completed countries based on search input
+        function filterNotCompletedCountries() {
+            renderNotCompletedList();
         }
 
         // Reset all data
