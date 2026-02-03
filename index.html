@@ -358,7 +358,8 @@
             <div class="map-section">
                 <div class="instructions">
                     <strong>How to use:</strong> Click on any country on the map to add or manage a dinner entry. 
-                    Use code "riley" or "murry" to identify the hosting family.
+                    Use code "riley" or "murry" to identify the hosting family.<br>
+                    <strong>Password required:</strong> Enter "dinner" when prompted to make changes.
                 </div>
                 <div id="map"></div>
             </div>
@@ -398,8 +399,8 @@
                 <h2 class="section-title">✅ Countries Completed (<span id="completedCount">0</span>)</h2>
                 <ul class="country-list" id="completedList"></ul>
 
-                <h2 class="section-title">⏳ Countries Not Yet Done</h2>
-                <div class="empty-state">Click on countries in the map to get started!</div>
+                <h2 class="section-title">⏳ Countries Not Yet Done (<span id="notCompletedCount">0</span>)</h2>
+                <ul class="country-list" id="notCompletedList"></ul>
 
                 <button class="btn btn-reset" onclick="resetAllData()">🗑️ Reset All Data</button>
             </div>
@@ -445,6 +446,7 @@
         let map;
         let currentCountry = null;
         let countryLayers = {};
+        let allCountries = [];
 
         // Initialize the application
         function init() {
@@ -498,6 +500,7 @@
                         onEachFeature: function(feature, layer) {
                             const countryName = feature.properties.name;
                             countryLayers[countryName] = layer;
+                            allCountries.push(countryName);
 
                             layer.on('click', function() {
                                 openCountryModal(countryName);
@@ -526,6 +529,10 @@
                             layer.bindTooltip(tooltip);
                         }
                     }).addTo(map);
+                    
+                    // Sort countries and update UI
+                    allCountries.sort();
+                    updateUI();
                 })
                 .catch(error => {
                     console.error('Error loading country data:', error);
@@ -557,6 +564,13 @@
 
         // Open modal for adding/editing country
         function openCountryModal(countryName) {
+            // Request password for changes
+            const password = prompt('Enter password to make changes:');
+            if (password !== 'dinner') {
+                alert('Incorrect password!');
+                return;
+            }
+            
             currentCountry = countryName;
             const dinner = dinnerData[countryName];
 
@@ -603,6 +617,13 @@
 
         // Delete country entry
         function deleteCountry(countryName) {
+            // Request password for deletion
+            const password = prompt('Enter password to delete:');
+            if (password !== 'dinner') {
+                alert('Incorrect password!');
+                return;
+            }
+            
             if (confirm(`Remove ${countryName} from the list?`)) {
                 delete dinnerData[countryName];
                 saveData();
@@ -683,10 +704,52 @@
                     completedList.appendChild(li);
                 });
             }
+            
+            // Update not completed list
+            const notCompletedList = document.getElementById('notCompletedList');
+            notCompletedList.innerHTML = '';
+            
+            const notCompleted = allCountries.filter(c => !dinnerData[c]);
+            document.getElementById('notCompletedCount').textContent = notCompleted.length;
+            
+            if (notCompleted.length === 0) {
+                notCompletedList.innerHTML = '<li class="empty-state">All countries completed! 🎉</li>';
+            } else if (allCountries.length === 0) {
+                notCompletedList.innerHTML = '<li class="empty-state">Loading countries...</li>';
+            } else {
+                // Show first 50 countries to avoid overwhelming the UI
+                const displayLimit = 50;
+                notCompleted.slice(0, displayLimit).forEach(countryName => {
+                    const li = document.createElement('li');
+                    li.className = 'country-item';
+                    li.style.cursor = 'pointer';
+                    li.innerHTML = `
+                        <div class="country-info">
+                            <div class="country-name">${countryName}</div>
+                        </div>
+                    `;
+                    li.onclick = () => openCountryModal(countryName);
+                    notCompletedList.appendChild(li);
+                });
+                
+                if (notCompleted.length > displayLimit) {
+                    const li = document.createElement('li');
+                    li.className = 'empty-state';
+                    li.innerHTML = `...and ${notCompleted.length - displayLimit} more countries`;
+                    notCompletedList.appendChild(li);
+                }
+            }
         }
 
         // Reset all data
         function resetAllData() {
+            // Request password for reset
+            const password = prompt('Enter password to reset all data:');
+            if (password !== 'dinner') {
+                alert('Incorrect password!');
+                return;
+            }
+            
             if (confirm('Are you sure you want to delete ALL dinner data? This cannot be undone!')) {
                 if (confirm('Really sure? This will erase everything!')) {
                     dinnerData = {};
