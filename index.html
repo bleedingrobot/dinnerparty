@@ -15,27 +15,80 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --container-bg: white;
+            --header-gradient-start: #667eea;
+            --header-gradient-end: #764ba2;
+            --text-color: #333;
+            --text-light: #666;
+            --border-color: #e0e0e0;
+            --sidebar-bg: #f9f9f9;
+            --card-bg: white;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --container-bg: #1e1e1e;
+            --header-gradient-start: #0f3460;
+            --header-gradient-end: #16213e;
+            --text-color: #e0e0e0;
+            --text-light: #b0b0b0;
+            --border-color: #333;
+            --sidebar-bg: #252525;
+            --card-bg: #2a2a2a;
+            --shadow: rgba(0,0,0,0.3);
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             padding: 20px;
+            transition: background 0.3s;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: white;
+            background: var(--container-bg);
             border-radius: 15px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
 
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--header-gradient-start) 0%, var(--header-gradient-end) 100%);
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
+        }
+
+        .header-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
 
         h1 {
@@ -56,19 +109,41 @@
 
         .map-section {
             padding: 20px;
-            border-right: 1px solid #e0e0e0;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .map-controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .map-controls label {
+            color: var(--text-color);
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .map-controls select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            cursor: pointer;
         }
 
         #map {
             width: 100%;
             height: 600px;
             border-radius: 10px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
         }
 
         .sidebar {
             padding: 30px;
-            background: #f9f9f9;
+            background: var(--sidebar-bg);
             overflow-y: auto;
             max-height: 640px;
         }
@@ -81,11 +156,11 @@
 
         .stat-card {
             flex: 1;
-            background: white;
+            background: var(--card-bg);
             padding: 15px;
             border-radius: 8px;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
         .stat-number {
@@ -96,16 +171,66 @@
 
         .stat-label {
             font-size: 0.85em;
-            color: #666;
+            color: var(--text-light);
             margin-top: 5px;
+        }
+
+        .progress-container {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .progress-label {
+            font-size: 0.9em;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85em;
         }
 
         .section-title {
             font-size: 1.3em;
-            color: #333;
+            color: var(--text-color);
             margin: 25px 0 15px 0;
             padding-bottom: 10px;
             border-bottom: 2px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sort-select {
+            padding: 5px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            font-size: 0.85em;
+            cursor: pointer;
         }
 
         .country-list {
@@ -113,14 +238,19 @@
         }
 
         .country-item {
-            background: white;
+            background: var(--card-bg);
             padding: 12px;
             margin-bottom: 10px;
             border-radius: 6px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 5px var(--shadow);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .country-item:hover {
+            transform: translateX(5px);
         }
 
         .country-info {
@@ -129,7 +259,7 @@
 
         .country-name {
             font-weight: 600;
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 4px;
         }
 
@@ -153,9 +283,15 @@
 
         .country-notes {
             font-size: 0.85em;
-            color: #666;
+            color: var(--text-light);
             margin-top: 4px;
             font-style: italic;
+        }
+
+        .country-date {
+            font-size: 0.8em;
+            color: var(--text-light);
+            margin-top: 2px;
         }
 
         .country-actions {
@@ -171,6 +307,17 @@
             font-size: 0.9em;
             font-weight: 500;
             transition: all 0.3s;
+        }
+
+        .btn-zoom {
+            background: #2196F3;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+
+        .btn-zoom:hover {
+            background: #1976D2;
         }
 
         .btn-edit {
@@ -204,17 +351,21 @@
         }
 
         .legend {
-            background: white;
+            background: var(--card-bg);
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px var(--shadow);
         }
 
         .legend-title {
             font-weight: 600;
             margin-bottom: 10px;
-            color: #333;
+            color: var(--text-color);
+        }
+
+        .legend-item span {
+            color: var(--text-color);
         }
 
         .legend-item {
@@ -259,7 +410,7 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--container-bg);
             padding: 30px;
             border-radius: 10px;
             max-width: 400px;
@@ -270,7 +421,7 @@
         .modal-title {
             font-size: 1.5em;
             margin-bottom: 20px;
-            color: #333;
+            color: var(--text-color);
         }
 
         .form-group {
@@ -281,16 +432,18 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
-            color: #555;
+            color: var(--text-light);
         }
 
         input, textarea {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-radius: 5px;
             font-size: 1em;
             font-family: inherit;
+            background: var(--card-bg);
+            color: var(--text-color);
         }
 
         textarea {
@@ -326,7 +479,7 @@
 
         .empty-state {
             text-align: center;
-            color: #999;
+            color: var(--text-light);
             padding: 20px;
             font-style: italic;
         }
@@ -338,9 +491,11 @@
         .search-box input {
             width: 100%;
             padding: 10px;
-            border: 2px solid #ddd;
+            border: 2px solid var(--border-color);
             border-radius: 5px;
             font-size: 0.95em;
+            background: var(--card-bg);
+            color: var(--text-color);
         }
 
         .search-box input:focus {
@@ -355,11 +510,53 @@
 
             .map-section {
                 border-right: none;
-                border-bottom: 1px solid #e0e0e0;
+                border-bottom: 1px solid var(--border-color);
             }
 
             .sidebar {
                 max-height: none;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            .map-section, .modal, .btn-reset, .search-box, .header-controls, .map-controls {
+                display: none !important;
+            }
+
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                max-height: none;
+                background: white;
+            }
+
+            .country-actions {
+                display: none;
+            }
+
+            header {
+                background: #667eea;
+                color: white;
+                page-break-after: avoid;
+            }
+
+            .section-title {
+                page-break-after: avoid;
+            }
+
+            .country-item {
+                page-break-inside: avoid;
             }
         }
     </style>
@@ -367,12 +564,24 @@
 <body>
     <div class="container">
         <header>
+            <div class="header-controls">
+                <button class="control-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</button>
+                <button class="control-btn" onclick="window.print()" title="Print View">🖨️</button>
+            </div>
             <h1>🌍 World Dinner Map Tracker</h1>
             <p class="subtitle">Track themed dinners hosted by Riley and Murry families</p>
         </header>
 
         <div class="content">
             <div class="map-section">
+                <div class="map-controls">
+                    <label for="mapStyle">Map Style:</label>
+                    <select id="mapStyle" onchange="changeMapStyle()">
+                        <option value="osm">Street Map</option>
+                        <option value="topo">Topographic</option>
+                        <option value="satellite">Satellite</option>
+                    </select>
+                </div>
                 <div id="map"></div>
             </div>
 
@@ -392,6 +601,16 @@
                     </div>
                 </div>
 
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Global Progress</span>
+                        <span id="progressText">0 / 0</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+                    </div>
+                </div>
+
                 <div class="legend">
                     <div class="legend-title">Map Legend</div>
                     <div class="legend-item">
@@ -408,7 +627,19 @@
                     </div>
                 </div>
 
-                <h2 class="section-title">✅ Countries Completed (<span id="completedCount">0</span>)</h2>
+                <h2 class="section-title">
+                    <span>✅ Countries Completed (<span id="completedCount">0</span>)</span>
+                    <select class="sort-select" id="sortCompleted" onchange="updateUI()">
+                        <option value="name">Sort: A-Z</option>
+                        <option value="name-desc">Sort: Z-A</option>
+                        <option value="date-new">Sort: Newest</option>
+                        <option value="date-old">Sort: Oldest</option>
+                        <option value="family">Sort: Family</option>
+                    </select>
+                </h2>
+                <div class="search-box">
+                    <input type="text" id="completedSearch" placeholder="Search completed countries..." oninput="updateUI()">
+                </div>
                 <ul class="country-list" id="completedList"></ul>
 
                 <h2 class="section-title">⏳ Countries Not Yet Done (<span id="notCompletedCount">0</span>)</h2>
@@ -462,6 +693,21 @@
         let currentCountry = null;
         let countryLayers = {};
         let allCountries = [];
+        let currentTileLayer = null;
+        let mapStyles = {
+            osm: {
+                url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                attribution: '© OpenStreetMap contributors'
+            },
+            topo: {
+                url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+                attribution: '© OpenTopoMap contributors'
+            },
+            satellite: {
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                attribution: '© Esri'
+            }
+        };
 
         // Initialize the application
         function init() {
@@ -493,13 +739,49 @@
             map = L.map('map').setView([20, 0], 2);
 
             // Use OpenStreetMap tiles (free and open-source)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
+            const style = mapStyles.osm;
+            currentTileLayer = L.tileLayer(style.url, {
+                attribution: style.attribution,
                 maxZoom: 18
             }).addTo(map);
 
             // Load country boundaries
             loadCountryBoundaries();
+            
+            // Load dark mode preference
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+        }
+
+        // Change map style
+        function changeMapStyle() {
+            const styleId = document.getElementById('mapStyle').value;
+            const style = mapStyles[styleId];
+            
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
+            
+            currentTileLayer = L.tileLayer(style.url, {
+                attribution: style.attribution,
+                maxZoom: 18
+            }).addTo(map);
+        }
+
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+        }
+
+        // Zoom to country on map
+        function zoomToCountry(countryName) {
+            const layer = countryLayers[countryName];
+            if (layer) {
+                map.fitBounds(layer.getBounds(), { padding: [50, 50] });
+            }
         }
 
         // Load GeoJSON data for country boundaries
@@ -618,11 +900,17 @@
                 return;
             }
 
-            // Save data
-            dinnerData[currentCountry] = {
-                family: familyCode,
-                notes: notes
-            };
+            // Save data with date if new entry
+            if (!dinnerData[currentCountry]) {
+                dinnerData[currentCountry] = {
+                    family: familyCode,
+                    notes: notes,
+                    dateAdded: new Date().toISOString()
+                };
+            } else {
+                dinnerData[currentCountry].family = familyCode;
+                dinnerData[currentCountry].notes = notes;
+            }
 
             saveData();
             updateCountryOnMap(currentCountry);
@@ -673,7 +961,7 @@
 
         // Update UI (stats and lists)
         function updateUI() {
-            const countries = Object.keys(dinnerData);
+            let countries = Object.keys(dinnerData);
             const rileyCount = countries.filter(c => dinnerData[c].family === 'riley').length;
             const murryCount = countries.filter(c => dinnerData[c].family === 'murry').length;
 
@@ -683,15 +971,51 @@
             document.getElementById('murryCount').textContent = murryCount;
             document.getElementById('completedCount').textContent = countries.length;
 
+            // Update progress bar
+            const totalCountries = allCountries.length || 195; // approximate if not loaded
+            const percentage = totalCountries > 0 ? Math.round((countries.length / totalCountries) * 100) : 0;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressFill').textContent = percentage + '%';
+            document.getElementById('progressText').textContent = `${countries.length} / ${totalCountries}`;
+
+            // Get search term
+            const searchTerm = document.getElementById('completedSearch')?.value.toLowerCase().trim() || '';
+            
+            // Filter by search
+            if (searchTerm) {
+                countries = countries.filter(c => c.toLowerCase().includes(searchTerm));
+            }
+
+            // Get sort option
+            const sortOption = document.getElementById('sortCompleted')?.value || 'name';
+            
+            // Sort countries
+            countries.sort((a, b) => {
+                switch(sortOption) {
+                    case 'name-desc':
+                        return b.localeCompare(a);
+                    case 'date-new':
+                        return (dinnerData[b].dateAdded || '').localeCompare(dinnerData[a].dateAdded || '');
+                    case 'date-old':
+                        return (dinnerData[a].dateAdded || '').localeCompare(dinnerData[b].dateAdded || '');
+                    case 'family':
+                        const famCompare = dinnerData[a].family.localeCompare(dinnerData[b].family);
+                        return famCompare !== 0 ? famCompare : a.localeCompare(b);
+                    default: // name
+                        return a.localeCompare(b);
+                }
+            });
+
             // Update completed list
             const completedList = document.getElementById('completedList');
             completedList.innerHTML = '';
 
-            if (countries.length === 0) {
+            if (Object.keys(dinnerData).length === 0) {
                 completedList.innerHTML = '<li class="empty-state">No countries added yet</li>';
+            } else if (countries.length === 0) {
+                completedList.innerHTML = '<li class="empty-state">No countries match your search</li>';
             } else {
-                // Sort countries alphabetically
-                countries.sort().forEach(countryName => {
+                countries.forEach(countryName => {
                     const dinner = dinnerData[countryName];
                     const li = document.createElement('li');
                     li.className = 'country-item';
@@ -703,14 +1027,22 @@
                     if (dinner.notes) {
                         notesHtml = `<div class="country-notes">${dinner.notes}</div>`;
                     }
+                    
+                    let dateHtml = '';
+                    if (dinner.dateAdded) {
+                        const date = new Date(dinner.dateAdded);
+                        dateHtml = `<div class="country-date">Added: ${date.toLocaleDateString()}</div>`;
+                    }
 
                     li.innerHTML = `
                         <div class="country-info">
                             <div class="country-name">${countryName}</div>
                             <span class="country-family ${familyClass}">${familyDisplay}</span>
                             ${notesHtml}
+                            ${dateHtml}
                         </div>
                         <div class="country-actions">
+                            <button class="btn btn-zoom" onclick="zoomToCountry('${countryName}')">📍</button>
                             <button class="btn btn-edit" onclick="editCountry('${countryName}')">Edit</button>
                             <button class="btn btn-delete" onclick="deleteCountry('${countryName}')">Delete</button>
                         </div>
