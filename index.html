@@ -350,6 +350,51 @@
             background: #e64a19;
         }
 
+        .backup-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .backup-title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .backup-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-backup {
+            background: #2196F3;
+            color: white;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .btn-backup:hover {
+            background: #1976D2;
+        }
+
+        .btn-restore {
+            background: #4CAF50;
+            color: white;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .btn-restore:hover {
+            background: #45a049;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
         .legend {
             background: var(--card-bg);
             padding: 15px;
@@ -645,6 +690,15 @@
                     <input type="text" id="countrySearch" placeholder="Search countries..." oninput="filterNotCompletedCountries()">
                 </div>
                 <ul class="country-list" id="notCompletedList"></ul>
+
+                <div class="backup-section">
+                    <div class="backup-title">Data Management</div>
+                    <div class="backup-buttons">
+                        <button class="btn btn-backup" onclick="exportData()">Download Backup</button>
+                        <button class="btn btn-restore" onclick="document.getElementById('fileInput').click()">Upload Backup</button>
+                        <input type="file" id="fileInput" accept=".json" onchange="importData(event)">
+                    </div>
+                </div>
 
                 <button class="btn btn-reset" onclick="resetAllData()">Reset All Data</button>
             </div>
@@ -1130,6 +1184,85 @@
                     alert('All data has been reset!');
                 }
             }
+        }
+
+        // Export data as JSON file
+        function exportData() {
+            // Request password for export
+            const password = prompt('Enter password to download backup:');
+            if (password !== 'admin') {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(dinnerData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            const date = new Date().toISOString().split('T')[0];
+            link.download = `dinner-map-backup-${date}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            alert('Backup downloaded successfully!');
+        }
+
+        // Import data from JSON file
+        function importData(event) {
+            // Request password for import
+            const password = prompt('Enter password to upload backup:');
+            if (password !== 'admin') {
+                alert('Incorrect password!');
+                event.target.value = ''; // Reset file input
+                return;
+            }
+            
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Validate data structure
+                    if (typeof importedData !== 'object') {
+                        throw new Error('Invalid data format');
+                    }
+                    
+                    // Confirm before overwriting
+                    const currentCount = Object.keys(dinnerData).length;
+                    const importCount = Object.keys(importedData).length;
+                    
+                    if (currentCount > 0) {
+                        if (!confirm(`This will replace your current ${currentCount} entries with ${importCount} entries from the backup. Continue?`)) {
+                            event.target.value = ''; // Reset file input
+                            return;
+                        }
+                    }
+                    
+                    // Import data
+                    dinnerData = importedData;
+                    saveData();
+                    
+                    // Update all countries on map
+                    Object.keys(countryLayers).forEach(countryName => {
+                        updateCountryOnMap(countryName);
+                    });
+                    
+                    updateUI();
+                    alert(`Backup restored successfully! ${importCount} countries loaded.`);
+                } catch (error) {
+                    alert('Error reading backup file. Please make sure it is a valid backup file.');
+                    console.error('Import error:', error);
+                }
+                
+                // Reset file input
+                event.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         // Close modal when clicking outside
