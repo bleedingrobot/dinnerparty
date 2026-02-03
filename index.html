@@ -288,6 +288,49 @@
             font-style: italic;
         }
 
+        .country-details {
+            font-size: 0.85em;
+            color: var(--text-light);
+            margin-top: 6px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .detail-badge {
+            background: var(--border-color);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+
+        .difficulty-easy {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .difficulty-medium {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+
+        .difficulty-hard {
+            background: #ffccbc;
+            color: #d84315;
+        }
+
+        .wiki-link {
+            color: #2196F3;
+            text-decoration: none;
+            font-size: 0.85em;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+        .wiki-link:hover {
+            text-decoration: underline;
+        }
+
         .country-date {
             font-size: 0.8em;
             color: var(--text-light);
@@ -722,6 +765,19 @@
                     <label for="notes">Notes (optional)</label>
                     <textarea id="notes" placeholder="Dish, date, theme, etc."></textarea>
                 </div>
+                <div class="form-group">
+                    <label for="cuisine">Cuisine Type (optional)</label>
+                    <input type="text" id="cuisine" placeholder="e.g., Mediterranean, Asian, Fusion">
+                </div>
+                <div class="form-group">
+                    <label for="difficulty">Difficulty (optional)</label>
+                    <select id="difficulty">
+                        <option value="">-- Select --</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
@@ -868,9 +924,15 @@
 
                             // Bind tooltip
                             const dinner = dinnerData[countryName];
-                            let tooltip = countryName;
+                            let tooltip = `<strong>${countryName}</strong>`;
                             if (dinner) {
                                 tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murry'} Family</strong>`;
+                                if (dinner.cuisine) {
+                                    tooltip += `<br>Cuisine: ${dinner.cuisine}`;
+                                }
+                                if (dinner.difficulty) {
+                                    tooltip += `<br>Difficulty: ${dinner.difficulty.charAt(0).toUpperCase() + dinner.difficulty.slice(1)}`;
+                                }
                                 if (dinner.notes) {
                                     tooltip += `<br><em>${dinner.notes}</em>`;
                                 }
@@ -928,6 +990,8 @@
             document.getElementById('countryName').value = countryName;
             document.getElementById('familyCode').value = dinner ? dinner.family : '';
             document.getElementById('notes').value = dinner ? dinner.notes : '';
+            document.getElementById('cuisine').value = dinner ? (dinner.cuisine || '') : '';
+            document.getElementById('difficulty').value = dinner ? (dinner.difficulty || '') : '';
 
             document.getElementById('countryModal').classList.add('active');
         }
@@ -945,6 +1009,8 @@
 
             const familyCode = document.getElementById('familyCode').value.toLowerCase().trim();
             const notes = document.getElementById('notes').value.trim();
+            const cuisine = document.getElementById('cuisine').value.trim();
+            const difficulty = document.getElementById('difficulty').value;
 
             // Validate family code
             if (familyCode !== 'riley' && familyCode !== 'murry') {
@@ -957,11 +1023,15 @@
                 dinnerData[currentCountry] = {
                     family: familyCode,
                     notes: notes,
+                    cuisine: cuisine,
+                    difficulty: difficulty,
                     dateAdded: new Date().toISOString()
                 };
             } else {
                 dinnerData[currentCountry].family = familyCode;
                 dinnerData[currentCountry].notes = notes;
+                dinnerData[currentCountry].cuisine = cuisine;
+                dinnerData[currentCountry].difficulty = difficulty;
             }
 
             saveData();
@@ -1000,9 +1070,15 @@
                 
                 // Update tooltip
                 const dinner = dinnerData[countryName];
-                let tooltip = countryName;
+                let tooltip = `<strong>${countryName}</strong>`;
                 if (dinner) {
                     tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murry'} Family</strong>`;
+                    if (dinner.cuisine) {
+                        tooltip += `<br>Cuisine: ${dinner.cuisine}`;
+                    }
+                    if (dinner.difficulty) {
+                        tooltip += `<br>Difficulty: ${dinner.difficulty.charAt(0).toUpperCase() + dinner.difficulty.slice(1)}`;
+                    }
                     if (dinner.notes) {
                         tooltip += `<br><em>${dinner.notes}</em>`;
                     }
@@ -1080,6 +1156,24 @@
                         notesHtml = `<div class="country-notes">${dinner.notes}</div>`;
                     }
                     
+                    let detailsHtml = '';
+                    const details = [];
+                    if (dinner.cuisine) {
+                        details.push(`<span class="detail-badge">🍴 ${dinner.cuisine}</span>`);
+                    }
+                    if (dinner.difficulty) {
+                        const diffClass = `difficulty-${dinner.difficulty}`;
+                        const diffText = dinner.difficulty.charAt(0).toUpperCase() + dinner.difficulty.slice(1);
+                        details.push(`<span class="detail-badge ${diffClass}">⭐ ${diffText}</span>`);
+                    }
+                    if (details.length > 0) {
+                        detailsHtml = `<div class="country-details">${details.join('')}</div>`;
+                    }
+                    
+                    // Generate Wikipedia link
+                    const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(countryName.replace(/ /g, '_'))}`;
+                    const wikiHtml = `<a href="${wikiUrl}" target="_blank" class="wiki-link" rel="noopener noreferrer">📖 Wikipedia</a>`;
+                    
                     let dateHtml = '';
                     if (dinner.dateAdded) {
                         const date = new Date(dinner.dateAdded);
@@ -1091,6 +1185,8 @@
                             <div class="country-name">${countryName}</div>
                             <span class="country-family ${familyClass}">${familyDisplay}</span>
                             ${notesHtml}
+                            ${detailsHtml}
+                            ${wikiHtml}
                             ${dateHtml}
                         </div>
                         <div class="country-actions">
