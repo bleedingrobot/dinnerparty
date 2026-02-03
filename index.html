@@ -565,10 +565,10 @@
     <div class="container">
         <header>
             <div class="header-controls">
-                <button class="control-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">🌙</button>
-                <button class="control-btn" onclick="window.print()" title="Print View">🖨️</button>
+                <button class="control-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">Dark</button>
+                <button class="control-btn" onclick="window.print()" title="Print View">Print</button>
             </div>
-            <h1>🌍 World Dinner Map Tracker</h1>
+            <h1>World Dinner Map Tracker</h1>
             <p class="subtitle">Track themed dinners hosted by Riley and Murry families</p>
         </header>
 
@@ -628,7 +628,7 @@
                 </div>
 
                 <h2 class="section-title">
-                    <span>✅ Countries Completed (<span id="completedCount">0</span>)</span>
+                    <span>Countries Completed (<span id="completedCount">0</span>)</span>
                     <select class="sort-select" id="sortCompleted" onchange="updateUI()">
                         <option value="name">Sort: A-Z</option>
                         <option value="name-desc">Sort: Z-A</option>
@@ -643,14 +643,14 @@
                 <ul class="country-list" id="completedList"></ul>
 
                 <h2 class="section-title">
-                    <span>⏳ Countries Not Yet Done (<span id="notCompletedCount">0</span>)</span>
+                    <span>Countries Not Yet Done (<span id="notCompletedCount">0</span>)</span>
                 </h2>
                 <div class="search-box">
                     <input type="text" id="countrySearch" placeholder="Search countries..." oninput="filterNotCompletedCountries()">
                 </div>
                 <ul class="country-list" id="notCompletedList"></ul>
 
-                <button class="btn btn-reset" onclick="resetAllData()">🗑️ Reset All Data</button>
+                <button class="btn btn-reset" onclick="resetAllData()">Reset All Data</button>
             </div>
         </div>
     </div>
@@ -1044,7 +1044,7 @@
                             ${dateHtml}
                         </div>
                         <div class="country-actions">
-                            <button class="btn btn-zoom" onclick="zoomToCountry('${countryName}')">📍</button>
+                            <button class="btn btn-zoom" onclick="zoomToCountry('${countryName}')">Zoom</button>
                             <button class="btn btn-edit" onclick="editCountry('${countryName}')">Edit</button>
                             <button class="btn btn-delete" onclick="deleteCountry('${countryName}')">Delete</button>
                         </div>
@@ -1076,7 +1076,7 @@
             }
             
             if (notCompleted.length === 0) {
-                notCompletedList.innerHTML = '<li class="empty-state">All countries completed! 🎉</li>';
+                notCompletedList.innerHTML = '<li class="empty-state">All countries completed!</li>';
             } else if (allCountries.length === 0) {
                 notCompletedList.innerHTML = '<li class="empty-state">Loading countries...</li>';
             } else if (filteredCountries.length === 0) {
