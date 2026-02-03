@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Dinner Map Tracker</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 0;
+        }
+
+        .map-section {
+            padding: 20px;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        #map {
+            width: 100%;
+            height: 600px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .sidebar {
+            padding: 30px;
+            background: #f9f9f9;
+            overflow-y: auto;
+            max-height: 640px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #333;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .country-list {
+            list-style: none;
+        }
+
+        .country-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .country-info {
+            flex: 1;
+        }
+
+        .country-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .country-family {
+            font-size: 0.85em;
+            padding: 3px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .family-riley {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .family-murry {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .country-notes {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .country-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #45a049;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #da190b;
+        }
+
+        .btn-reset {
+            background: #ff5722;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-reset:hover {
+            background: #e64a19;
+        }
+
+        .legend {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .instructions {
+            background: #e8eaf6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #ccc;
+            color: #333;
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background: #bbb;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        @media (max-width: 968px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .map-section {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .sidebar {
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌍 World Dinner Map Tracker</h1>
+            <p class="subtitle">Track themed dinners hosted by Riley and Murry families</p>
+        </header>
+
+        <div class="content">
+            <div class="map-section">
+                <div class="instructions">
+                    <strong>How to use:</strong> Click on any country on the map to add or manage a dinner entry. 
+                    Use code "riley" or "murry" to identify the hosting family.
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <div class="sidebar">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalCount">0</div>
+                        <div class="stat-label">Total Dinners</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="rileyCount">0</div>
+                        <div class="stat-label">Riley</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="murryCount">0</div>
+                        <div class="stat-label">Murry</div>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-title">Map Legend</div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #1976d2;"></div>
+                        <span>Riley Family</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f57c00;"></div>
+                        <span>Murry Family</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ccc;"></div>
+                        <span>Not Yet Done</span>
+                    </div>
+                </div>
+
+                <h2 class="section-title">✅ Countries Completed (<span id="completedCount">0</span>)</h2>
+                <ul class="country-list" id="completedList"></ul>
+
+                <h2 class="section-title">⏳ Countries Not Yet Done</h2>
+                <div class="empty-state">Click on countries in the map to get started!</div>
+
+                <button class="btn btn-reset" onclick="resetAllData()">🗑️ Reset All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing country -->
+    <div class="modal" id="countryModal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modalTitle">Add Country</h2>
+            <form id="countryForm" onsubmit="saveCountry(event)">
+                <div class="form-group">
+                    <label for="countryName">Country Name</label>
+                    <input type="text" id="countryName" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="familyCode">Family Code</label>
+                    <input type="text" id="familyCode" placeholder="Enter 'riley' or 'murry'" required>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes (optional)</label>
+                    <textarea id="notes" placeholder="Dish, date, theme, etc."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        /**
+         * DATA STORAGE
+         * All country dinner data is stored in localStorage under the key 'dinnerCountries'
+         * Format: { countryName: { family: 'riley' or 'murry', notes: 'string' } }
+         */
+
+        let dinnerData = {};
+        let map;
+        let currentCountry = null;
+        let countryLayers = {};
+
+        // Initialize the application
+        function init() {
+            loadData();
+            initMap();
+            updateUI();
+        }
+
+        // Load data from localStorage
+        function loadData() {
+            const stored = localStorage.getItem('dinnerCountries');
+            if (stored) {
+                try {
+                    dinnerData = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                    dinnerData = {};
+                }
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('dinnerCountries', JSON.stringify(dinnerData));
+        }
+
+        // Initialize Leaflet map
+        function initMap() {
+            map = L.map('map').setView([20, 0], 2);
+
+            // Use OpenStreetMap tiles (free and open-source)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+
+            // Load country boundaries
+            loadCountryBoundaries();
+        }
+
+        // Load GeoJSON data for country boundaries
+        function loadCountryBoundaries() {
+            // Using a simplified world countries GeoJSON from Natural Earth data
+            fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+                .then(response => response.json())
+                .then(data => {
+                    L.geoJSON(data, {
+                        style: function(feature) {
+                            return getCountryStyle(feature.properties.name);
+                        },
+                        onEachFeature: function(feature, layer) {
+                            const countryName = feature.properties.name;
+                            countryLayers[countryName] = layer;
+
+                            layer.on('click', function() {
+                                openCountryModal(countryName);
+                            });
+
+                            layer.on('mouseover', function() {
+                                layer.setStyle({
+                                    weight: 3,
+                                    fillOpacity: 0.7
+                                });
+                            });
+
+                            layer.on('mouseout', function() {
+                                layer.setStyle(getCountryStyle(countryName));
+                            });
+
+                            // Bind tooltip
+                            const dinner = dinnerData[countryName];
+                            let tooltip = countryName;
+                            if (dinner) {
+                                tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murry'} Family</strong>`;
+                                if (dinner.notes) {
+                                    tooltip += `<br><em>${dinner.notes}</em>`;
+                                }
+                            }
+                            layer.bindTooltip(tooltip);
+                        }
+                    }).addTo(map);
+                })
+                .catch(error => {
+                    console.error('Error loading country data:', error);
+                    alert('Could not load map data. Please check your internet connection.');
+                });
+        }
+
+        // Get style for a country based on dinner data
+        function getCountryStyle(countryName) {
+            const dinner = dinnerData[countryName];
+            
+            if (!dinner) {
+                return {
+                    fillColor: '#cccccc',
+                    fillOpacity: 0.3,
+                    color: '#999',
+                    weight: 1
+                };
+            }
+
+            const fillColor = dinner.family === 'riley' ? '#1976d2' : '#f57c00';
+            return {
+                fillColor: fillColor,
+                fillOpacity: 0.6,
+                color: '#333',
+                weight: 2
+            };
+        }
+
+        // Open modal for adding/editing country
+        function openCountryModal(countryName) {
+            currentCountry = countryName;
+            const dinner = dinnerData[countryName];
+
+            document.getElementById('modalTitle').textContent = 
+                dinner ? `Edit ${countryName}` : `Add ${countryName}`;
+            document.getElementById('countryName').value = countryName;
+            document.getElementById('familyCode').value = dinner ? dinner.family : '';
+            document.getElementById('notes').value = dinner ? dinner.notes : '';
+
+            document.getElementById('countryModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('countryModal').classList.remove('active');
+            document.getElementById('countryForm').reset();
+            currentCountry = null;
+        }
+
+        // Save country data
+        function saveCountry(event) {
+            event.preventDefault();
+
+            const familyCode = document.getElementById('familyCode').value.toLowerCase().trim();
+            const notes = document.getElementById('notes').value.trim();
+
+            // Validate family code
+            if (familyCode !== 'riley' && familyCode !== 'murry') {
+                alert('Please enter either "riley" or "murry" as the family code.');
+                return;
+            }
+
+            // Save data
+            dinnerData[currentCountry] = {
+                family: familyCode,
+                notes: notes
+            };
+
+            saveData();
+            updateCountryOnMap(currentCountry);
+            updateUI();
+            closeModal();
+        }
+
+        // Delete country entry
+        function deleteCountry(countryName) {
+            if (confirm(`Remove ${countryName} from the list?`)) {
+                delete dinnerData[countryName];
+                saveData();
+                updateCountryOnMap(countryName);
+                updateUI();
+            }
+        }
+
+        // Edit country entry
+        function editCountry(countryName) {
+            openCountryModal(countryName);
+        }
+
+        // Update country appearance on map
+        function updateCountryOnMap(countryName) {
+            const layer = countryLayers[countryName];
+            if (layer) {
+                layer.setStyle(getCountryStyle(countryName));
+                
+                // Update tooltip
+                const dinner = dinnerData[countryName];
+                let tooltip = countryName;
+                if (dinner) {
+                    tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murry'} Family</strong>`;
+                    if (dinner.notes) {
+                        tooltip += `<br><em>${dinner.notes}</em>`;
+                    }
+                }
+                layer.setTooltipContent(tooltip);
+            }
+        }
+
+        // Update UI (stats and lists)
+        function updateUI() {
+            const countries = Object.keys(dinnerData);
+            const rileyCount = countries.filter(c => dinnerData[c].family === 'riley').length;
+            const murryCount = countries.filter(c => dinnerData[c].family === 'murry').length;
+
+            // Update stats
+            document.getElementById('totalCount').textContent = countries.length;
+            document.getElementById('rileyCount').textContent = rileyCount;
+            document.getElementById('murryCount').textContent = murryCount;
+            document.getElementById('completedCount').textContent = countries.length;
+
+            // Update completed list
+            const completedList = document.getElementById('completedList');
+            completedList.innerHTML = '';
+
+            if (countries.length === 0) {
+                completedList.innerHTML = '<li class="empty-state">No countries added yet</li>';
+            } else {
+                // Sort countries alphabetically
+                countries.sort().forEach(countryName => {
+                    const dinner = dinnerData[countryName];
+                    const li = document.createElement('li');
+                    li.className = 'country-item';
+                    
+                    const familyClass = dinner.family === 'riley' ? 'family-riley' : 'family-murry';
+                    const familyDisplay = dinner.family === 'riley' ? 'Riley' : 'Murry';
+                    
+                    let notesHtml = '';
+                    if (dinner.notes) {
+                        notesHtml = `<div class="country-notes">${dinner.notes}</div>`;
+                    }
+
+                    li.innerHTML = `
+                        <div class="country-info">
+                            <div class="country-name">${countryName}</div>
+                            <span class="country-family ${familyClass}">${familyDisplay}</span>
+                            ${notesHtml}
+                        </div>
+                        <div class="country-actions">
+                            <button class="btn btn-edit" onclick="editCountry('${countryName}')">Edit</button>
+                            <button class="btn btn-delete" onclick="deleteCountry('${countryName}')">Delete</button>
+                        </div>
+                    `;
+                    
+                    completedList.appendChild(li);
+                });
+            }
+        }
+
+        // Reset all data
+        function resetAllData() {
+            if (confirm('Are you sure you want to delete ALL dinner data? This cannot be undone!')) {
+                if (confirm('Really sure? This will erase everything!')) {
+                    dinnerData = {};
+                    saveData();
+                    
+                    // Update all countries on map
+                    Object.keys(countryLayers).forEach(countryName => {
+                        updateCountryOnMap(countryName);
+                    });
+                    
+                    updateUI();
+                    alert('All data has been reset!');
+                }
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('countryModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initialize app when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
