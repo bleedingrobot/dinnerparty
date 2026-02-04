@@ -40,7 +40,7 @@ dinner-map-tracker/
 3. Go to repository Settings → Pages
 4. Under "Source", select the main branch
 5. Click Save
-6. Your site will be available at: `https://yourusername.github.io/repository-name/`
+6. Your site will be available at: `https://bleedingrobot.github.io/dinnerparty/`
 
 ### Method 2: Using Git Command Line
 
