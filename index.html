@@ -834,64 +834,28 @@
         };
 
         // Initialize the application
-        async function init() {
-            showLoading('Loading data...');
-            await loadData();
+        function init() {
+            loadData();
             initMap();
             updateUI();
-            hideLoading();
         }
 
-        // Load data from Google Sheets or localStorage
-        async function loadData() {
-            if (USE_GOOGLE_SHEETS) {
+        // Load data from localStorage
+        function loadData() {
+            const stored = localStorage.getItem('dinnerCountries');
+            if (stored) {
                 try {
-                    const response = await fetch(SCRIPT_URL);
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                        dinnerData = result.data || {};
-                        // Cache in localStorage for offline access
-                        localStorage.setItem('dinnerCountries', JSON.stringify(dinnerData));
-                        localStorage.setItem('lastSync', new Date().toISOString());
-                    } else {
-                        throw new Error(result.error || 'Failed to load data');
-                    }
-                } catch (error) {
-                    console.error('Error loading from Google Sheets:', error);
-                    // Fallback to localStorage cache
-                    const stored = localStorage.getItem('dinnerCountries');
-                    if (stored) {
-                        dinnerData = JSON.parse(stored);
-                        alert('Using cached data (offline). Changes will sync when online.');
-                    } else {
-                        alert('Could not load data from Google Sheets. Please check your connection.');
-                    }
-                }
-            } else {
-                // Use localStorage only (original behavior)
-                const stored = localStorage.getItem('dinnerCountries');
-                if (stored) {
-                    try {
-                        dinnerData = JSON.parse(stored);
-                    } catch (e) {
-                        console.error('Error loading data:', e);
-                        dinnerData = {};
-                    }
+                    dinnerData = JSON.parse(stored);
+                } catch (e) {
+                    console.error('Error loading data:', e);
+                    dinnerData = {};
                 }
             }
         }
 
-        // Save data to Google Sheets and localStorage
-        async function saveData() {
-            // Always save to localStorage as cache
+        // Save data to localStorage
+        function saveData() {
             localStorage.setItem('dinnerCountries', JSON.stringify(dinnerData));
-            
-            // Sync to Google Sheets if enabled
-            if (USE_GOOGLE_SHEETS) {
-                // Syncing happens per-operation (save, delete) not on every data change
-                return true;
-            }
         }
 
         // Initialize Leaflet map
