@@ -24,13 +24,40 @@ const SHEET_ID = '1n9dmKtioZurbXMqh_WWyybrOj4GqHue6BM2SxB09Qfc';
 const SHEET_NAME = 'DinnerData'; // Change this if you want a different sheet name
 
 /**
- * Handle GET requests - Read all data
+ * Handle GET requests - Read all data or perform actions
  */
 function doGet(e) {
   try {
-    const data = getAllData();
+    const action = e.parameter.action;
+    
+    // If no action, return all data
+    if (!action) {
+      const data = getAllData();
+      return ContentService
+        .createTextOutput(JSON.stringify({ success: true, data: data }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Handle actions
+    let result;
+    switch (action) {
+      case 'save':
+        const country = e.parameter.country;
+        const data = JSON.parse(e.parameter.data);
+        result = saveCountry(country, data);
+        break;
+      case 'delete':
+        result = deleteCountry(e.parameter.country);
+        break;
+      case 'reset':
+        result = resetAll();
+        break;
+      default:
+        throw new Error('Invalid action');
+    }
+    
     return ContentService
-      .createTextOutput(JSON.stringify({ success: true, data: data }))
+      .createTextOutput(JSON.stringify({ success: true, result: result }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
     return ContentService
@@ -43,6 +70,11 @@ function doGet(e) {
  * Handle POST requests - Save/Update/Delete data
  */
 function doPost(e) {
+  // Handle CORS preflight
+  if (e.parameter.callback) {
+    return ContentService.createTextOutput('');
+  }
+  
   try {
     const params = JSON.parse(e.postData.contents);
     const action = params.action;

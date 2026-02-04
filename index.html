@@ -869,15 +869,8 @@
         // Save data to Google Sheets
         async function saveDataToSheets(country, data) {
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'save',
-                        country: country,
-                        data: data
-                    })
-                });
+                const url = `${SCRIPT_URL}?action=save&country=${encodeURIComponent(country)}&data=${encodeURIComponent(JSON.stringify(data))}`;
+                const response = await fetch(url);
                 const result = await response.json();
                 if (!result.success) {
                     throw new Error(result.error || 'Failed to save');
@@ -893,14 +886,8 @@
         // Delete country from Google Sheets
         async function deleteFromSheets(country) {
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'delete',
-                        country: country
-                    })
-                });
+                const url = `${SCRIPT_URL}?action=delete&country=${encodeURIComponent(country)}`;
+                const response = await fetch(url);
                 const result = await response.json();
                 if (!result.success) {
                     throw new Error(result.error || 'Failed to delete');
@@ -916,11 +903,8 @@
         // Reset all data in Google Sheets
         async function resetSheets() {
             try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'reset' })
-                });
+                const url = `${SCRIPT_URL}?action=reset`;
+                const response = await fetch(url);
                 const result = await response.json();
                 if (!result.success) {
                     throw new Error(result.error || 'Failed to reset');
