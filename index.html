@@ -871,7 +871,6 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'save',
@@ -879,6 +878,10 @@
                         data: data
                     })
                 });
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to save');
+                }
                 console.log('Saved to Google Sheets:', country);
                 return true;
             } catch (error) {
@@ -892,13 +895,16 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         action: 'delete',
                         country: country
                     })
                 });
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to delete');
+                }
                 console.log('Deleted from Google Sheets:', country);
                 return true;
             } catch (error) {
@@ -912,10 +918,13 @@
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'reset' })
                 });
+                const result = await response.json();
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to reset');
+                }
                 console.log('Reset Google Sheets');
                 return true;
             } catch (error) {
