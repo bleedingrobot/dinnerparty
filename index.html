@@ -1120,52 +1120,35 @@
 
             showLoading('Saving...');
 
-            // Save data with date if new entry
-            const isNew = !dinnerData[currentCountry];
-            if (isNew) {
-                dinnerData[currentCountry] = {
-                    family: familyCode,
-                    notes: notes,
-                    cuisine: cuisine,
-                    difficulty: difficulty,
-                    dateAdded: new Date().toISOString()
-                };
-            } else {
-                dinnerData[currentCountry].family = familyCode;
-                dinnerData[currentCountry].notes = notes;
-                dinnerData[currentCountry].cuisine = cuisine;
-                dinnerData[currentCountry].difficulty = difficulty;
-            }
-
-            await saveData();
-
-            // Sync to Google Sheets
-            if (USE_GOOGLE_SHEETS) {
-                try {
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'save',
-                            country: currentCountry,
-                            data: dinnerData[currentCountry]
-                        })
-                    });
-                    
-                    const result = await response.json();
-                    if (!result.success) {
-                        throw new Error(result.error || 'Failed to save');
-                    }
-                } catch (error) {
-                    console.error('Error syncing to Google Sheets:', error);
-                    alert('Saved locally but could not sync to Google Sheets. Will retry later.');
+            try {
+                // Save data with date if new entry
+                const isNew = !dinnerData[currentCountry];
+                if (isNew) {
+                    dinnerData[currentCountry] = {
+                        family: familyCode,
+                        notes: notes,
+                        cuisine: cuisine,
+                        difficulty: difficulty,
+                        dateAdded: new Date().toISOString()
+                    };
+                } else {
+                    dinnerData[currentCountry].family = familyCode;
+                    dinnerData[currentCountry].notes = notes;
+                    dinnerData[currentCountry].cuisine = cuisine;
+                    dinnerData[currentCountry].difficulty = difficulty;
                 }
-            }
 
-            updateCountryOnMap(currentCountry);
-            updateUI();
-            closeModal();
-            hideLoading();
+                // Save to Google Sheets
+                await saveDataToSheets(currentCountry, dinnerData[currentCountry]);
+
+                updateCountryOnMap(currentCountry);
+                updateUI();
+                closeModal();
+            } catch (error) {
+                alert('Failed to save. Please try again.');
+            } finally {
+                hideLoading();
+            }
         }
 
         // Delete country entry
