@@ -1432,7 +1432,7 @@
             const password = prompt('Enter password to upload backup:');
             if (password !== 'admin') {
                 alert('Incorrect password!');
-                event.target.value = ''; // Reset file input
+                event.target.value = '';
                 return;
             }
             
@@ -1486,27 +1486,12 @@
                         alert('Error importing data. Please try again.');
                     } finally {
                         hideLoading();
-                        } catch (error) {
-                            console.error('Error syncing to Google Sheets:', error);
-                            alert('Imported locally but could not sync all data to Google Sheets.');
-                        }
                     }
-                    
-                    // Update all countries on map
-                    Object.keys(countryLayers).forEach(countryName => {
-                        updateCountryOnMap(countryName);
-                    });
-                    
-                    updateUI();
-                    hideLoading();
-                    alert(`Backup restored successfully! ${importCount} countries loaded.`);
                 } catch (error) {
-                    hideLoading();
                     alert('Error reading backup file. Please make sure it is a valid backup file.');
                     console.error('Import error:', error);
                 }
                 
-                // Reset file input
                 event.target.value = '';
             };
             reader.readAsText(file);
