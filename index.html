@@ -800,11 +800,10 @@
     <script>
         /**
          * GOOGLE SHEETS INTEGRATION
-         * Replace YOUR_SCRIPT_URL_HERE with your Google Apps Script web app URL
-         * See GOOGLE_SHEETS_SETUP.md for instructions
+         * Connected to Google Sheets via Apps Script API
          */
-        const SCRIPT_URL = 'YOUR_SCRIPT_URL_HERE';
-        const USE_GOOGLE_SHEETS = SCRIPT_URL !== 'YOUR_SCRIPT_URL_HERE';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDTwDNXSrfamhpBgv8AFHveJLdKNhol5AbPDYOK6-AMhWQjRzy_tzFdBZhF8YDXpUqAg/exec';
+        const USE_GOOGLE_SHEETS = true;
 
         /**
          * DATA STORAGE
@@ -834,28 +833,113 @@
         };
 
         // Initialize the application
-        function init() {
-            loadData();
-            initMap();
-            updateUI();
-        }
-
-        // Load data from localStorage
-        function loadData() {
-            const stored = localStorage.getItem('dinnerCountries');
-            if (stored) {
-                try {
-                    dinnerData = JSON.parse(stored);
-                } catch (e) {
-                    console.error('Error loading data:', e);
-                    dinnerData = {};
-                }
+        async function init() {
+            showLoading('Loading data from Google Sheets...');
+            try {
+                await loadData();
+                initMap();
+                updateUI();
+            } catch (error) {
+                console.error('Init error:', error);
+                alert('Error loading data. Please refresh the page.');
+            } finally {
+                hideLoading();
             }
         }
 
-        // Save data to localStorage
-        function saveData() {
-            localStorage.setItem('dinnerCountries', JSON.stringify(dinnerData));
+        // Load data from Google Sheets
+        async function loadData() {
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const result = await response.json();
+                
+                if (result.success) {
+                    dinnerData = result.data || {};
+                    console.log('Loaded data from Google Sheets:', Object.keys(dinnerData).length, 'countries');
+                } else {
+                    throw new Error(result.error || 'Failed to load data');
+                }
+            } catch (error) {
+                console.error('Error loading from Google Sheets:', error);
+                alert('Could not load data from Google Sheets. Please check your connection and try again.');
+                dinnerData = {};
+            }
+        }
+
+        // Save data to Google Sheets
+        async function saveDataToSheets(country, data) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'save',
+                        country: country,
+                        data: data
+                    })
+                });
+                console.log('Saved to Google Sheets:', country);
+                return true;
+            } catch (error) {
+                console.error('Error saving to Google Sheets:', error);
+                throw error;
+            }
+        }
+
+        // Delete country from Google Sheets
+        async function deleteFromSheets(country) {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'delete',
+                        country: country
+                    })
+                });
+                console.log('Deleted from Google Sheets:', country);
+                return true;
+            } catch (error) {
+                console.error('Error deleting from Google Sheets:', error);
+                throw error;
+            }
+        }
+
+        // Reset all data in Google Sheets
+        async function resetSheets() {
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'reset' })
+                });
+                console.log('Reset Google Sheets');
+                return true;
+            } catch (error) {
+                console.error('Error resetting Google Sheets:', error);
+                throw error;
+            }
+        }
+
+        // Show loading overlay
+        function showLoading(message = 'Loading...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const text = document.getElementById('loadingText');
+            if (overlay && text) {
+                text.textContent = message;
+                overlay.classList.add('active');
+            }
+        }
+
+        // Hide loading overlay
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
         }
 
         // Initialize Leaflet map
