@@ -1172,34 +1172,17 @@
             if (confirm(`Remove ${countryName} from the list?`)) {
                 showLoading('Deleting...');
                 
-                delete dinnerData[countryName];
-                await saveData();
-                
-                // Sync to Google Sheets
-                if (USE_GOOGLE_SHEETS) {
-                    try {
-                        const response = await fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                action: 'delete',
-                                country: countryName
-                            })
-                        });
-                        
-                        const result = await response.json();
-                        if (!result.success) {
-                            throw new Error(result.error || 'Failed to delete');
-                        }
-                    } catch (error) {
-                        console.error('Error syncing to Google Sheets:', error);
-                        alert('Deleted locally but could not sync to Google Sheets.');
-                    }
+                try {
+                    delete dinnerData[countryName];
+                    await deleteFromSheets(countryName);
+                    
+                    updateCountryOnMap(countryName);
+                    updateUI();
+                } catch (error) {
+                    alert('Failed to delete. Please try again.');
+                } finally {
+                    hideLoading();
                 }
-                
-                updateCountryOnMap(countryName);
-                updateUI();
-                hideLoading();
             }
         }
 
