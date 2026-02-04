@@ -1399,25 +1399,21 @@
                 if (confirm('Really sure? This will erase everything!')) {
                     showLoading('Resetting...');
                     
-                    dinnerData = {};
-                    await saveData();
-                    
-                    // Sync to Google Sheets
-                    if (USE_GOOGLE_SHEETS) {
-                        try {
-                            const response = await fetch(SCRIPT_URL, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'reset' })
-                            });
-                            
-                            const result = await response.json();
-                            if (!result.success) {
-                                throw new Error(result.error || 'Failed to reset');
-                            }
-                        } catch (error) {
-                            console.error('Error syncing to Google Sheets:', error);
-                            alert('Reset locally but could not sync to Google Sheets.');
+                    try {
+                        dinnerData = {};
+                        await resetSheets();
+                        
+                        // Update all countries on map
+                        Object.keys(countryLayers).forEach(countryName => {
+                            updateCountryOnMap(countryName);
+                        });
+                        
+                        updateUI();
+                        alert('All data has been reset!');
+                    } catch (error) {
+                        alert('Failed to reset. Please try again.');
+                    } finally {
+                        hideLoading();
                         }
                     }
                     
@@ -1485,39 +1481,37 @@
                     
                     if (currentCount > 0) {
                         if (!confirm(`This will replace your current ${currentCount} entries with ${importCount} entries from the backup. Continue?`)) {
-                            event.target.value = ''; // Reset file input
+                            event.target.value = '';
                             return;
                         }
                     }
                     
                     showLoading('Importing data...');
                     
-                    // Import data
-                    dinnerData = importedData;
-                    await saveData();
-                    
-                    // Sync each country to Google Sheets
-                    if (USE_GOOGLE_SHEETS) {
-                        try {
-                            // First reset
-                            await fetch(SCRIPT_URL, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ action: 'reset' })
-                            });
-                            
-                            // Then save each country
-                            for (const [country, data] of Object.entries(dinnerData)) {
-                                await fetch(SCRIPT_URL, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        action: 'save',
-                                        country: country,
-                                        data: data
-                                    })
-                                });
-                            }
+                    try {
+                        // Reset Google Sheets
+                        await resetSheets();
+                        
+                        // Upload each country
+                        for (const [country, data] of Object.entries(importedData)) {
+                            await saveDataToSheets(country, data);
+                        }
+                        
+                        // Reload data
+                        dinnerData = importedData;
+                        
+                        // Update UI
+                        Object.keys(countryLayers).forEach(countryName => {
+                            updateCountryOnMap(countryName);
+                        });
+                        
+                        updateUI();
+                        alert(`Backup restored successfully! ${importCount} countries loaded.`);
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        alert('Error importing data. Please try again.');
+                    } finally {
+                        hideLoading();
                         } catch (error) {
                             console.error('Error syncing to Google Sheets:', error);
                             alert('Imported locally but could not sync all data to Google Sheets.');
