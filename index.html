@@ -1398,17 +1398,7 @@
                         alert('Failed to reset. Please try again.');
                     } finally {
                         hideLoading();
-                        }
                     }
-                    
-                    // Update all countries on map
-                    Object.keys(countryLayers).forEach(countryName => {
-                        updateCountryOnMap(countryName);
-                    });
-                    
-                    updateUI();
-                    hideLoading();
-                    alert('All data has been reset!');
                 }
             }
         }
