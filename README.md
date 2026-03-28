@@ -1,5 +1,7 @@
 # 🌍 World Dinner Map Tracker
 
+🔗 **Live Website:** [https://bleedingrobot.github.io/dinnerparty/](https://bleedingrobot.github.io/dinnerparty/)
+
 A simple static website for tracking themed dinners from countries around the world, hosted by Riley and Murry families.
 
 ## ✨ Features
