@@ -508,6 +508,157 @@
         .legend-dot.riley { background: var(--riley); box-shadow: 0 0 10px var(--riley-glow); }
         .legend-dot.murry { background: var(--murry); box-shadow: 0 0 10px var(--murry-glow); }
 
+        /* ---------- Riley vs Murry tug-of-war ---------- */
+        .tug {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+        .tug-head {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 9px;
+        }
+        .tug-head .r { color: var(--riley-soft); }
+        .tug-head .m { color: var(--murry-soft); }
+        .tug-track {
+            position: relative;
+            height: 16px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+        }
+        body.light-mode .tug-track { background: rgba(15, 23, 42, 0.08); }
+        .tug-r, .tug-m { height: 100%; transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+        .tug-r { background: linear-gradient(90deg, var(--riley), rgba(34, 211, 238, 0.55)); box-shadow: 0 0 16px -2px var(--riley-glow); }
+        .tug-m { background: linear-gradient(90deg, rgba(251, 191, 36, 0.55), var(--murry)); box-shadow: 0 0 16px -2px var(--murry-glow); }
+        .tug-mid {
+            position: absolute;
+            top: -3px; bottom: -3px;
+            width: 2px;
+            background: #fff;
+            box-shadow: 0 0 10px #fff;
+            transition: left 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tug-note { text-align: center; font-size: 0.76em; color: var(--text-faint); margin-top: 8px; }
+
+        /* ---------- Per-continent breakdown ---------- */
+        details.continents {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            border-radius: var(--radius-md);
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+        details.continents > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 13px 16px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.9em;
+            color: var(--text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        details.continents > summary::-webkit-details-marker { display: none; }
+        details.continents > summary::after { content: "▾"; color: var(--text-faint); transition: transform 0.2s; }
+        details.continents[open] > summary::after { transform: rotate(180deg); }
+        .continent-grid { padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 11px; }
+        .continent-row { font-size: 0.8em; }
+        .continent-row .cr-top { display: flex; justify-content: space-between; color: var(--text-dim); margin-bottom: 5px; }
+        .continent-row .cr-top b { color: var(--text); font-family: 'Space Grotesk', sans-serif; font-weight: 600; }
+        .cr-bar { height: 7px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+        body.light-mode .cr-bar { background: rgba(15, 23, 42, 0.08); }
+        .cr-fill { height: 100%; border-radius: 999px; background: var(--accent-grad); transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+        .cr-fill.done { background: linear-gradient(90deg, #34d399, #22d3ee); }
+
+        /* ---------- Achievements ---------- */
+        .achievements {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-bottom: 18px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.74em;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--glass-brd);
+            background: var(--glass-bg);
+            color: var(--text-faint);
+            cursor: default;
+            transition: transform 0.2s;
+        }
+        .badge .b-ico { font-size: 1.15em; filter: grayscale(1) opacity(0.55); }
+        .badge.unlocked {
+            color: var(--text);
+            border-color: rgba(34, 211, 238, 0.35);
+            background: rgba(34, 211, 238, 0.10);
+        }
+        .badge.unlocked .b-ico { filter: none; }
+        .badge.pop { animation: badgePop 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes badgePop {
+            0% { transform: scale(0.4); opacity: 0; }
+            55% { transform: scale(1.18); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ---------- Toasts ---------- */
+        #toastHost {
+            position: fixed;
+            left: 50%;
+            bottom: 26px;
+            transform: translateX(-50%);
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            align-items: center;
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--glass-bg-strong);
+            border: 1px solid var(--glass-hi);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(16px);
+            animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            max-width: min(440px, 88vw);
+        }
+        .toast.out { animation: toastOut 0.3s ease forwards; }
+        .toast .t-ico { font-size: 1.1em; }
+        .toast.ok { border-color: rgba(52, 211, 153, 0.4); }
+        .toast.err { border-color: rgba(251, 113, 133, 0.4); }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(10px); } }
+
+        #confettiCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 3500;
+            pointer-events: none;
+        }
+
         .section-title {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1.08em;
@@ -1157,10 +1308,30 @@
                     </div>
                 </div>
 
+                <div class="tug" id="tug" hidden>
+                    <div class="tug-head">
+                        <span class="r">Riley <span id="tugR">0</span></span>
+                        <span class="m"><span id="tugM">0</span> Murry</span>
+                    </div>
+                    <div class="tug-track">
+                        <div class="tug-r" id="tugRbar" style="width:50%"></div>
+                        <div class="tug-m" id="tugMbar" style="width:50%"></div>
+                        <div class="tug-mid" id="tugMid" style="left:50%"></div>
+                    </div>
+                    <div class="tug-note" id="tugNote">All square</div>
+                </div>
+
+                <details class="continents" id="continents" hidden>
+                    <summary>By continent <span class="count-badge" id="continentTouched">0 / 7</span></summary>
+                    <div class="continent-grid" id="continentGrid"></div>
+                </details>
+
                 <div class="legend">
                     <div class="legend-item"><span class="legend-dot riley"></span> Riley family</div>
                     <div class="legend-item"><span class="legend-dot murry"></span> Murry family</div>
                 </div>
+
+                <div class="achievements" id="achievements" hidden></div>
 
                 <h2 class="section-title">
                     <span>Completed <span class="count-badge" id="completedCount">0</span></span>
@@ -1255,6 +1426,9 @@
         </div>
     </div>
 
+    <canvas id="confettiCanvas"></canvas>
+    <div id="toastHost"></div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -1317,6 +1491,163 @@
             requestAnimationFrame(tick);
         }
 
+        // country -> continent, keyed to the GeoJSON country names
+        const CONTINENTS = {
+            "Africa": "Algeria|Angola|Benin|Botswana|Burkina Faso|Burundi|Cameroon|Central African Republic|Chad|Democratic Republic of the Congo|Djibouti|Egypt|Equatorial Guinea|Eritrea|Ethiopia|Gabon|Gambia|Ghana|Guinea|Guinea Bissau|Ivory Coast|Kenya|Lesotho|Liberia|Libya|Madagascar|Malawi|Mali|Mauritania|Morocco|Mozambique|Namibia|Niger|Nigeria|Republic of the Congo|Rwanda|Senegal|Sierra Leone|Somalia|Somaliland|South Africa|South Sudan|Sudan|Swaziland|Togo|Tunisia|Uganda|United Republic of Tanzania|Western Sahara|Zambia|Zimbabwe",
+            "Asia": "Afghanistan|Armenia|Azerbaijan|Bangladesh|Bhutan|Brunei|Cambodia|China|Cyprus|East Timor|Georgia|India|Indonesia|Iran|Iraq|Israel|Japan|Jordan|Kazakhstan|Kuwait|Kyrgyzstan|Laos|Lebanon|Malaysia|Mongolia|Myanmar|Nepal|North Korea|Northern Cyprus|Oman|Pakistan|Philippines|Qatar|Saudi Arabia|South Korea|Sri Lanka|Syria|Taiwan|Tajikistan|Thailand|Turkey|Turkmenistan|United Arab Emirates|Uzbekistan|Vietnam|West Bank|Yemen",
+            "Europe": "Albania|Austria|Belarus|Belgium|Bosnia and Herzegovina|Bulgaria|Croatia|Czech Republic|Denmark|Estonia|Finland|France|Germany|Greece|Hungary|Iceland|Ireland|Italy|Kosovo|Latvia|Lithuania|Luxembourg|Macedonia|Malta|Moldova|Montenegro|Netherlands|Norway|Poland|Portugal|Republic of Serbia|Romania|Russia|Slovakia|Slovenia|Spain|Sweden|Switzerland|Ukraine|United Kingdom",
+            "North America": "Belize|Bermuda|Canada|Costa Rica|Cuba|Dominican Republic|El Salvador|Greenland|Guatemala|Haiti|Honduras|Jamaica|Mexico|Nicaragua|Panama|Puerto Rico|The Bahamas|Trinidad and Tobago|United States of America",
+            "South America": "Argentina|Bolivia|Brazil|Chile|Colombia|Ecuador|Falkland Islands|French Guiana|Guyana|Paraguay|Peru|Suriname|Uruguay|Venezuela",
+            "Oceania": "Australia|Fiji|New Caledonia|New Zealand|Papua New Guinea|Solomon Islands|Vanuatu",
+            "Antarctica": "Antarctica|French Southern and Antarctic Lands"
+        };
+        const CONTINENT_ORDER = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Antarctica'];
+        const COUNTRY_CONTINENT = {};
+        Object.keys(CONTINENTS).forEach(cont => CONTINENTS[cont].split('|').forEach(c => { COUNTRY_CONTINENT[c] = cont; }));
+
+        // Alternate spellings -> the name used in the GeoJSON (for imported / hand-typed data)
+        const COUNTRY_ALIASES = {
+            'usa': 'United States of America', 'us': 'United States of America', 'u.s.a.': 'United States of America',
+            'united states': 'United States of America', 'america': 'United States of America',
+            'uk': 'United Kingdom', 'u.k.': 'United Kingdom', 'great britain': 'United Kingdom', 'britain': 'United Kingdom', 'england': 'United Kingdom',
+            'drc': 'Democratic Republic of the Congo', 'dr congo': 'Democratic Republic of the Congo',
+            'democratic republic of congo': 'Democratic Republic of the Congo', 'congo-kinshasa': 'Democratic Republic of the Congo',
+            'congo': 'Republic of the Congo', 'congo-brazzaville': 'Republic of the Congo',
+            'serbia': 'Republic of Serbia', 'tanzania': 'United Republic of Tanzania', 'czechia': 'Czech Republic',
+            'north macedonia': 'Macedonia', 'eswatini': 'Swaziland', 'burma': 'Myanmar',
+            "cote d'ivoire": 'Ivory Coast', "côte d'ivoire": 'Ivory Coast', 'timor-leste': 'East Timor', 'timor leste': 'East Timor',
+            'bahamas': 'The Bahamas', 'korea': 'South Korea', 'russian federation': 'Russia', 'viet nam': 'Vietnam',
+            'palestine': 'West Bank', 'uae': 'United Arab Emirates', 'the netherlands': 'Netherlands', 'holland': 'Netherlands'
+        };
+        function canonicalCountry(name) {
+            if (!name) return name;
+            if (COUNTRY_CONTINENT[name]) return name;
+            return COUNTRY_ALIASES[String(name).trim().toLowerCase()] || name;
+        }
+
+        // ---------- Toasts ----------
+        function toast(message, type) {
+            const host = document.getElementById('toastHost');
+            if (!host) return;
+            const el = document.createElement('div');
+            el.className = 'toast ' + (type || '');
+            const ico = type === 'ok' ? '✓' : type === 'err' ? '⚠' : '✨';
+            el.innerHTML = '<span class="t-ico">' + ico + '</span><span></span>';
+            el.lastChild.textContent = message;
+            host.appendChild(el);
+            setTimeout(() => {
+                el.classList.add('out');
+                setTimeout(() => el.remove(), 320);
+            }, type === 'err' ? 4600 : 3200);
+        }
+
+        // ---------- Confetti ----------
+        function fireConfetti(originX, originY) {
+            const canvas = document.getElementById('confettiCanvas');
+            if (!canvas) return;
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduced) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            ctx.scale(dpr, dpr);
+            const ox = originX == null ? window.innerWidth / 2 : originX;
+            const oy = originY == null ? window.innerHeight / 2 : originY;
+            const colors = ['#22d3ee', '#67e8f9', '#fbbf24', '#fcd34d', '#a855f7', '#ffffff'];
+            const parts = [];
+            for (let i = 0; i < 140; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 4 + Math.random() * 9;
+                parts.push({
+                    x: ox, y: oy,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 4,
+                    size: 4 + Math.random() * 6,
+                    color: colors[(Math.random() * colors.length) | 0],
+                    rot: Math.random() * Math.PI,
+                    vr: (Math.random() - 0.5) * 0.4,
+                    life: 1
+                });
+            }
+            let raf;
+            const t0 = performance.now();
+            function frame(now) {
+                const dt = Math.min((now - t0) / 1000, 3);
+                ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+                let alive = false;
+                parts.forEach(p => {
+                    p.vy += 0.28;
+                    p.vx *= 0.99;
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.rot += p.vr;
+                    p.life = Math.max(0, 1 - dt / 2.4);
+                    if (p.life > 0 && p.y < window.innerHeight + 40) {
+                        alive = true;
+                        ctx.save();
+                        ctx.globalAlpha = p.life;
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rot);
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                        ctx.restore();
+                    }
+                });
+                if (alive) { raf = requestAnimationFrame(frame); }
+                else { ctx.clearRect(0, 0, window.innerWidth, window.innerHeight); cancelAnimationFrame(raf); }
+            }
+            raf = requestAnimationFrame(frame);
+            // Safety: make sure the canvas is always cleared even if rAF stalls
+            setTimeout(() => { cancelAnimationFrame(raf); ctx.clearRect(0, 0, window.innerWidth, window.innerHeight); }, 3200);
+        }
+
+        // ---------- Achievements ----------
+        const ACHIEVEMENTS = [
+            { id: 'first', ico: '🍽️', label: 'First dinner', test: s => s.total >= 1 },
+            { id: 'five', ico: '⭐', label: '5 dinners', test: s => s.total >= 5 },
+            { id: 'ten', ico: '🔥', label: '10 dinners', test: s => s.total >= 10 },
+            { id: 'twentyfive', ico: '👑', label: '25 dinners', test: s => s.total >= 25 },
+            { id: 'fifty', ico: '🏆', label: '50 dinners', test: s => s.total >= 50 },
+            { id: 'continent', ico: '🗺️', label: 'Continent complete', test: s => s.fullContinents.length >= 1,
+              detail: s => s.fullContinents[0] },
+            { id: 'globetrotter', ico: '🌍', label: 'Globetrotter', test: s => s.touchedContinents >= 6 },
+            { id: 'balanced', ico: '⚖️', label: 'Perfectly balanced', test: s => s.total >= 6 && s.riley === s.murry },
+            { id: 'teamwork', ico: '🤝', label: 'Teamwork', test: s => s.sharedContinents >= 1 },
+            { id: 'daredevils', ico: '🌶️', label: 'Daredevils', test: s => s.hard >= 3 }
+        ];
+
+        function computeStats() {
+            const names = Object.keys(dinnerData);
+            const riley = names.filter(n => dinnerData[n].family === 'riley').length;
+            const perContinent = {};
+            CONTINENT_ORDER.forEach(c => { perContinent[c] = { done: 0, riley: 0, murry: 0, total: (CONTINENTS[c] || '').split('|').filter(Boolean).length }; });
+            names.forEach(n => {
+                const c = COUNTRY_CONTINENT[n];
+                if (!c || !perContinent[c]) return;
+                perContinent[c].done++;
+                perContinent[c][dinnerData[n].family === 'riley' ? 'riley' : 'murry']++;
+            });
+            const real = CONTINENT_ORDER.filter(c => c !== 'Antarctica');
+            return {
+                total: names.length,
+                riley: riley,
+                murry: names.length - riley,
+                hard: names.filter(n => dinnerData[n].difficulty === 'hard').length,
+                perContinent: perContinent,
+                touchedContinents: real.filter(c => perContinent[c].done > 0).length,
+                fullContinents: real.filter(c => perContinent[c].total > 0 && perContinent[c].done === perContinent[c].total),
+                sharedContinents: real.filter(c => perContinent[c].riley > 0 && perContinent[c].murry > 0).length
+            };
+        }
+
+        function loadSeenAchievements() {
+            try { return JSON.parse(localStorage.getItem('achievementsSeen') || '[]'); } catch (e) { return []; }
+        }
+        function saveSeenAchievements(list) {
+            try { localStorage.setItem('achievementsSeen', JSON.stringify(list)); } catch (e) { /* ignore */ }
+        }
+
         // Apply light / dark theme
         function applyTheme(mode) {
             const light = mode === 'light';
@@ -1341,6 +1672,7 @@
                 await loadData();
                 initMap();
                 updateUI();
+                window.__achReady = true; // celebrate unlocks only after the first paint
                 setupIdleWatch();
             } catch (error) {
                 console.error('Init error:', error);
@@ -1357,7 +1689,9 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    dinnerData = result.data || {};
+                    const raw = result.data || {};
+                    dinnerData = {};
+                    Object.keys(raw).forEach(k => { dinnerData[canonicalCountry(k)] = raw[k]; });
                     console.log('Loaded data from Google Sheets:', Object.keys(dinnerData).length, 'countries');
                 } else {
                     throw new Error(result.error || 'Failed to load data');
@@ -1479,7 +1813,8 @@
             const notCompleted = allCountries.filter(country => !dinnerData[country]);
 
             if (notCompleted.length === 0) {
-                alert('Congratulations! You have completed all countries!');
+                toast('Every country done — incredible!', 'ok');
+                fireConfetti();
                 return;
             }
 
@@ -1507,8 +1842,7 @@
                 }
             });
 
-            alert(`Random country selected: ${randomCountry}` +
-                (matched ? '\n\nHighlighted on the map and in the list.' : '\n\nZoomed to it on the map.'));
+            toast('🎲 ' + randomCountry + ' — ' + (matched ? 'highlighted below' : 'zoomed in on the map'));
         }
 
         // Load GeoJSON data for country boundaries
@@ -1660,9 +1994,17 @@
 
                 await saveDataToSheets(currentCountry, dinnerData[currentCountry]);
 
+                const savedCountry = currentCountry;
                 updateCountryOnMap(currentCountry);
                 updateUI();
                 closeModal();
+
+                if (isNew) {
+                    fireConfetti();
+                    toast(savedCountry + ' added — ' + (familyCode === 'riley' ? 'Riley' : 'Murry') + ' family!', 'ok');
+                } else {
+                    toast(savedCountry + ' updated', 'ok');
+                }
             } catch (error) {
                 alert('Failed to save. Please try again.');
             } finally {
@@ -1815,7 +2157,75 @@
             }
 
             renderNotCompletedList();
+            renderExtras();
             if (GLOBE && !TOUR.running) refreshGlobeData();
+        }
+
+        // Tug-of-war bar, per-continent breakdown, achievement badges
+        function renderExtras() {
+            const s = computeStats();
+
+            // Tug of war
+            const tug = document.getElementById('tug');
+            if (s.total === 0) {
+                tug.hidden = true;
+            } else {
+                tug.hidden = false;
+                document.getElementById('tugR').textContent = s.riley;
+                document.getElementById('tugM').textContent = s.murry;
+                const rPct = s.total ? (s.riley / s.total) * 100 : 50;
+                document.getElementById('tugRbar').style.width = rPct + '%';
+                document.getElementById('tugMbar').style.width = (100 - rPct) + '%';
+                document.getElementById('tugMid').style.left = rPct + '%';
+                const diff = s.riley - s.murry;
+                document.getElementById('tugNote').textContent =
+                    diff === 0 ? 'Neck and neck' :
+                    (diff > 0 ? 'Riley' : 'Murry') + ' ahead by ' + Math.abs(diff);
+            }
+
+            // Per-continent breakdown
+            const cont = document.getElementById('continents');
+            const grid = document.getElementById('continentGrid');
+            if (s.total === 0) {
+                cont.hidden = true;
+            } else {
+                cont.hidden = false;
+                document.getElementById('continentTouched').textContent = s.touchedContinents + ' / 6';
+                grid.innerHTML = CONTINENT_ORDER.filter(c => c !== 'Antarctica').map(c => {
+                    const d = s.perContinent[c];
+                    const pct = d.total ? Math.round((d.done / d.total) * 100) : 0;
+                    const done = d.done === d.total && d.total > 0;
+                    return '<div class="continent-row">' +
+                        '<div class="cr-top"><span>' + escapeHtml(c) + '</span><b>' + d.done + ' / ' + d.total + '</b></div>' +
+                        '<div class="cr-bar"><div class="cr-fill' + (done ? ' done' : '') + '" style="width:' + pct + '%"></div></div>' +
+                        '</div>';
+                }).join('');
+            }
+
+            // Achievements
+            const wrap = document.getElementById('achievements');
+            const unlocked = ACHIEVEMENTS.filter(a => a.test(s));
+            const seen = loadSeenAchievements();
+            const fresh = unlocked.filter(a => seen.indexOf(a.id) === -1);
+
+            wrap.hidden = unlocked.length === 0;
+            wrap.innerHTML = ACHIEVEMENTS.map(a => {
+                const on = unlocked.indexOf(a) !== -1;
+                const isFresh = fresh.indexOf(a) !== -1;
+                let label = a.label;
+                if (on && a.detail) { const d = a.detail(s); if (d) label += ': ' + d; }
+                return '<span class="badge' + (on ? ' unlocked' : '') + (isFresh ? ' pop' : '') + '" title="' +
+                    escapeHtml(on ? label : 'Locked — ' + a.label) + '">' +
+                    '<span class="b-ico">' + a.ico + '</span>' + escapeHtml(on ? a.label : a.label) + '</span>';
+            }).join('');
+
+            if (fresh.length && seen.length >= 0) {
+                // Only celebrate once the user has data loaded (avoid a burst on first page paint)
+                if (window.__achReady) {
+                    fresh.forEach(a => toast('Achievement unlocked — ' + a.label, 'ok'));
+                }
+                saveSeenAchievements(unlocked.map(a => a.id));
+            }
         }
 
         // Render not completed countries list
@@ -1889,7 +2299,7 @@
                         });
 
                         updateUI();
-                        alert('All data has been reset!');
+                        toast('All data has been reset', 'ok');
                     } catch (error) {
                         alert('Failed to reset. Please try again.');
                     } finally {
@@ -1918,7 +2328,7 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            alert('Backup downloaded successfully!');
+            toast('Backup downloaded', 'ok');
         }
 
         // Import data from JSON file
@@ -1968,7 +2378,8 @@
                         });
 
                         updateUI();
-                        alert(`Backup restored successfully! ${importCount} countries loaded.`);
+                        toast(`Backup restored — ${importCount} countries loaded`, 'ok');
+                        fireConfetti();
                     } catch (error) {
                         console.error('Import error:', error);
                         alert('Error importing data. Please try again.');
