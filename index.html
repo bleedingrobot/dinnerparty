@@ -6,69 +6,148 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <meta name="theme-color" content="#0a0b10">
     <title>World Dinner Map Tracker</title>
-    
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg-gradient-start: #667eea;
-            --bg-gradient-end: #764ba2;
-            --container-bg: white;
-            --header-gradient-start: #667eea;
-            --header-gradient-end: #764ba2;
-            --text-color: #333;
-            --text-light: #666;
-            --border-color: #e0e0e0;
-            --sidebar-bg: #f9f9f9;
-            --card-bg: white;
-            --shadow: rgba(0,0,0,0.1);
+            --bg-0: #08090e;
+            --bg-1: #0f111a;
+            --glass-bg: rgba(255, 255, 255, 0.045);
+            --glass-bg-strong: rgba(22, 25, 36, 0.82);
+            --glass-brd: rgba(255, 255, 255, 0.09);
+            --glass-hi: rgba(255, 255, 255, 0.16);
+            --text: #e9ebf3;
+            --text-dim: #969cb0;
+            --text-faint: #6b7185;
+            --riley: #22d3ee;
+            --riley-soft: #67e8f9;
+            --riley-glow: rgba(34, 211, 238, 0.55);
+            --murry: #fbbf24;
+            --murry-soft: #fcd34d;
+            --murry-glow: rgba(251, 191, 36, 0.5);
+            --accent-grad: linear-gradient(120deg, #22d3ee 0%, #6366f1 55%, #a855f7 100%);
+            --shadow-lg: 0 40px 90px -30px rgba(0, 0, 0, 0.75);
+            --shadow-card: 0 10px 34px -14px rgba(0, 0, 0, 0.6);
+            --ok: #34d399;
+            --warn: #fbbf24;
+            --bad: #fb7185;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 11px;
         }
 
-        body.dark-mode {
-            --bg-gradient-start: #1a1a2e;
-            --bg-gradient-end: #16213e;
-            --container-bg: #1e1e1e;
-            --header-gradient-start: #0f3460;
-            --header-gradient-end: #16213e;
-            --text-color: #e0e0e0;
-            --text-light: #b0b0b0;
-            --border-color: #333;
-            --sidebar-bg: #252525;
-            --card-bg: #2a2a2a;
-            --shadow: rgba(0,0,0,0.3);
+        body.light-mode {
+            --bg-0: #e9edf6;
+            --bg-1: #f6f8fc;
+            --glass-bg: rgba(255, 255, 255, 0.72);
+            --glass-bg-strong: rgba(255, 255, 255, 0.95);
+            --glass-brd: rgba(15, 23, 42, 0.1);
+            --glass-hi: rgba(15, 23, 42, 0.06);
+            --text: #1b2030;
+            --text-dim: #56607a;
+            --text-faint: #808aa3;
+            --riley: #0891b2;
+            --riley-soft: #0e7490;
+            --riley-glow: rgba(8, 145, 178, 0.4);
+            --murry: #d97706;
+            --murry-soft: #b45309;
+            --murry-glow: rgba(217, 119, 6, 0.35);
+            --shadow-lg: 0 40px 90px -30px rgba(30, 41, 90, 0.35);
+            --shadow-card: 0 12px 30px -16px rgba(30, 41, 90, 0.3);
         }
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            background: var(--bg-0);
             min-height: 100vh;
-            padding: 20px;
-            transition: background 0.3s;
+            padding: 28px 20px 60px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient aurora background */
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.55;
+        }
+        body::before {
+            width: 55vw; height: 55vw;
+            top: -18vw; left: -12vw;
+            background: radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.4), transparent 60%);
+            animation: drift1 26s ease-in-out infinite alternate;
+        }
+        body::after {
+            width: 50vw; height: 50vw;
+            bottom: -20vw; right: -14vw;
+            background: radial-gradient(circle at 60% 40%, rgba(168, 85, 247, 0.34), rgba(99, 102, 241, 0.22) 45%, transparent 70%);
+            animation: drift2 32s ease-in-out infinite alternate;
+        }
+        body.light-mode::before { opacity: 0.4; }
+        body.light-mode::after { opacity: 0.35; }
+
+        @keyframes drift1 {
+            to { transform: translate3d(8vw, 6vw, 0) scale(1.12); }
+        }
+        @keyframes drift2 {
+            to { transform: translate3d(-7vw, -5vw, 0) scale(1.15); }
         }
 
         .container {
-            max-width: 1400px;
+            position: relative;
+            z-index: 1;
+            max-width: 1460px;
             margin: 0 auto;
-            background: var(--container-bg);
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: var(--glass-bg);
+            backdrop-filter: blur(22px) saturate(150%);
+            -webkit-backdrop-filter: blur(22px) saturate(150%);
+            border: 1px solid var(--glass-brd);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
             overflow: hidden;
+            animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---------- Header ---------- */
         header {
-            background: linear-gradient(135deg, var(--header-gradient-start) 0%, var(--header-gradient-end) 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
             position: relative;
+            padding: 42px 34px 30px;
+            text-align: center;
+            border-bottom: 1px solid var(--glass-brd);
+            background:
+                radial-gradient(120% 140% at 50% -30%, rgba(99, 102, 241, 0.22), transparent 60%);
+        }
+
+        header::after {
+            content: "";
+            position: absolute;
+            left: 0; right: 0; bottom: -1px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--riley-glow), rgba(168, 85, 247, 0.5), transparent);
         }
 
         .header-controls {
@@ -76,579 +155,690 @@
             top: 20px;
             right: 20px;
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .control-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
+            font-family: inherit;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 999px;
             cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s;
+            font-size: 0.82em;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s, border-color 0.2s, background 0.2s;
         }
-
         .control-btn:hover {
-            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+            border-color: var(--glass-hi);
+            background: var(--glass-bg-strong);
         }
 
         h1 {
-            font-size: 2.5em;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.9em, 4.4vw, 2.9em);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            line-height: 1.05;
             margin-bottom: 10px;
+            background: linear-gradient(180deg, #ffffff 0%, #b9c0d8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        body.light-mode h1 {
+            background: linear-gradient(180deg, #1b2030 0%, #454f6b 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .subtitle {
-            font-size: 1.1em;
-            opacity: 0.9;
+            font-size: 1.02em;
+            color: var(--text-dim);
         }
+        .subtitle .fam {
+            font-weight: 600;
+            padding: 1px 4px;
+        }
+        .subtitle .riley { color: var(--riley-soft); }
+        .subtitle .murry { color: var(--murry-soft); }
 
+        /* ---------- Layout ---------- */
         .content {
             display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 0;
+            grid-template-columns: 1fr 400px;
         }
 
         .map-section {
-            padding: 20px;
-            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            border-right: 1px solid var(--glass-brd);
         }
 
         .map-controls {
-            margin-bottom: 15px;
+            margin-bottom: 14px;
             display: flex;
             gap: 10px;
             align-items: center;
         }
-
         .map-controls label {
-            color: var(--text-color);
-            font-size: 0.9em;
+            color: var(--text-dim);
+            font-size: 0.85em;
             font-weight: 500;
         }
 
-        .map-controls select {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            background: var(--card-bg);
-            color: var(--text-color);
+        select, .sort-select {
+            font-family: inherit;
+            padding: 9px 13px;
+            border: 1px solid var(--glass-brd);
+            border-radius: var(--radius-sm);
+            background: var(--glass-bg);
+            color: var(--text);
             cursor: pointer;
+            font-size: 0.85em;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        select:focus, .sort-select:focus {
+            outline: none;
+            border-color: var(--riley);
+            box-shadow: 0 0 0 3px var(--riley-glow);
+        }
+        select option { background: #14161f; color: var(--text); }
+
+        .map-wrap {
+            position: relative;
+            border-radius: 18px;
+            padding: 1px;
+            background: linear-gradient(140deg, var(--glass-hi), transparent 40%, var(--riley-glow));
+            box-shadow: 0 0 50px -12px var(--riley-glow), var(--shadow-card);
         }
 
         #map {
             width: 100%;
-            height: 600px;
-            border-radius: 10px;
-            border: 2px solid var(--border-color);
+            height: 640px;
+            border-radius: 17px;
+            background: #0b0d14;
+            z-index: 1;
         }
 
+        /* Leaflet dark theming */
+        .leaflet-container { background: #0b0d14; font-family: inherit; }
+        .leaflet-bar a,
+        .leaflet-bar a:hover {
+            background: var(--glass-bg-strong);
+            color: var(--text);
+            border-color: var(--glass-brd);
+        }
+        .leaflet-bar a:hover { background: var(--glass-hi); }
+        .leaflet-control-attribution {
+            background: rgba(8, 9, 14, 0.72) !important;
+            color: var(--text-faint) !important;
+            backdrop-filter: blur(6px);
+        }
+        .leaflet-control-attribution a { color: var(--riley-soft) !important; }
+        body.light-mode .leaflet-control-attribution {
+            background: rgba(255, 255, 255, 0.82) !important;
+        }
+        .leaflet-tooltip {
+            background: var(--glass-bg-strong);
+            border: 1px solid var(--glass-brd);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 8px 12px;
+            box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.6);
+            font-size: 0.82em;
+            backdrop-filter: blur(10px);
+        }
+        .leaflet-tooltip-top::before { border-top-color: var(--glass-brd); }
+        .leaflet-tooltip-bottom::before { border-bottom-color: var(--glass-brd); }
+        .leaflet-tooltip-left::before { border-left-color: var(--glass-brd); }
+        .leaflet-tooltip-right::before { border-right-color: var(--glass-brd); }
+
+        /* Country glow on the map */
+        .country-glow { transition: filter 0.3s ease; }
+        .country-riley { filter: drop-shadow(0 0 5px var(--riley-glow)); }
+        .country-murry { filter: drop-shadow(0 0 5px var(--murry-glow)); }
+
+        /* ---------- Sidebar ---------- */
         .sidebar {
-            padding: 30px;
-            background: var(--sidebar-bg);
+            padding: 26px 24px 30px;
+            background: rgba(255, 255, 255, 0.018);
             overflow-y: auto;
-            max-height: 640px;
+            max-height: 690px;
+        }
+        body.light-mode .sidebar { background: rgba(15, 23, 42, 0.02); }
+
+        .sidebar::-webkit-scrollbar { width: 10px; }
+        .sidebar::-webkit-scrollbar-track { background: transparent; }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--glass-hi);
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background-clip: content-box;
         }
 
         .stats {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .stat-card {
-            flex: 1;
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 8px;
+            position: relative;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            padding: 16px 12px;
+            border-radius: var(--radius-md);
             text-align: center;
-            box-shadow: 0 2px 8px var(--shadow);
+            overflow: hidden;
+            transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
         }
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--accent-grad);
+            opacity: 0.7;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--glass-hi);
+            box-shadow: var(--shadow-card);
+        }
+        #card-riley::before { background: linear-gradient(90deg, transparent, var(--riley)); }
+        #card-murry::before { background: linear-gradient(90deg, var(--murry), transparent); }
 
         .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.1em;
+            font-weight: 700;
+            line-height: 1;
+            background: linear-gradient(180deg, #fff, #aeb6d2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+        body.light-mode .stat-number {
+            background: linear-gradient(180deg, #1b2030, #4b5673);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        #rileyCount { background: linear-gradient(180deg, var(--riley-soft), var(--riley)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        #murryCount { background: linear-gradient(180deg, var(--murry-soft), var(--murry)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
         .stat-label {
-            font-size: 0.85em;
-            color: var(--text-light);
-            margin-top: 5px;
+            font-size: 0.74em;
+            color: var(--text-dim);
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
         }
 
         .progress-container {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px var(--shadow);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 18px;
         }
-
         .progress-label {
-            font-size: 0.9em;
-            color: var(--text-light);
-            margin-bottom: 8px;
+            font-size: 0.82em;
+            color: var(--text-dim);
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
+            font-weight: 500;
         }
-
+        #progressText { color: var(--text); font-family: 'Space Grotesk', sans-serif; }
         .progress-bar {
             width: 100%;
-            height: 25px;
-            background: var(--border-color);
-            border-radius: 12px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 999px;
             overflow: hidden;
             position: relative;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
         }
-
+        body.light-mode .progress-bar { background: rgba(15, 23, 42, 0.08); }
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            transition: width 0.5s ease;
+            width: 0%;
+            border-radius: 999px;
+            background: var(--accent-grad);
+            background-size: 200% 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #fff;
             font-weight: 600;
-            font-size: 0.85em;
+            font-size: 0.72em;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 18px -2px var(--riley-glow);
+            transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
         }
+        .progress-fill::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 2.6s ease-in-out infinite;
+        }
+        @keyframes shimmer { to { transform: translateX(100%); } }
+
+        .legend {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            display: flex;
+            gap: 22px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 9px; font-size: 0.85em; color: var(--text-dim); }
+        .legend-dot {
+            width: 12px; height: 12px; border-radius: 50%;
+        }
+        .legend-dot.riley { background: var(--riley); box-shadow: 0 0 10px var(--riley-glow); }
+        .legend-dot.murry { background: var(--murry); box-shadow: 0 0 10px var(--murry-glow); }
 
         .section-title {
-            font-size: 1.3em;
-            color: var(--text-color);
-            margin: 25px 0 15px 0;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.08em;
+            font-weight: 600;
+            color: var(--text);
+            margin: 26px 0 14px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
+            border-bottom: 1px solid var(--glass-brd);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
+        }
+        .section-title .count-badge {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72em;
+            font-weight: 600;
+            color: var(--riley-soft);
+            background: rgba(34, 211, 238, 0.12);
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            padding: 2px 9px;
+            border-radius: 999px;
         }
 
-        .sort-select {
-            padding: 5px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            background: var(--card-bg);
-            color: var(--text-color);
-            font-size: 0.85em;
-            cursor: pointer;
+        .search-box { margin-bottom: 14px; }
+        .search-box input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--glass-brd);
+            border-radius: var(--radius-sm);
+            font-size: 0.9em;
+            font-family: inherit;
+            background: var(--glass-bg);
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-box input::placeholder { color: var(--text-faint); }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--riley);
+            box-shadow: 0 0 0 3px var(--riley-glow);
         }
 
-        .country-list {
-            list-style: none;
-        }
+        .country-list { list-style: none; }
 
         .country-item {
-            background: var(--card-bg);
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            box-shadow: 0 2px 5px var(--shadow);
+            position: relative;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            padding: 13px 14px 13px 18px;
+            margin-bottom: 9px;
+            border-radius: var(--radius-sm);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s;
+            gap: 10px;
+            overflow: hidden;
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s, box-shadow 0.22s;
+            animation: fadeUp 0.4s ease both;
         }
-
+        .country-item::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--glass-hi);
+        }
+        .country-item.is-riley::before { background: var(--riley); box-shadow: 0 0 12px var(--riley-glow); }
+        .country-item.is-murry::before { background: var(--murry); box-shadow: 0 0 12px var(--murry-glow); }
         .country-item:hover {
             transform: translateX(5px);
+            border-color: var(--glass-hi);
+            box-shadow: var(--shadow-card);
+        }
+        .country-item:nth-child(1) { animation-delay: 0.02s; }
+        .country-item:nth-child(2) { animation-delay: 0.04s; }
+        .country-item:nth-child(3) { animation-delay: 0.06s; }
+        .country-item:nth-child(4) { animation-delay: 0.08s; }
+        .country-item:nth-child(5) { animation-delay: 0.10s; }
+        .country-item:nth-child(6) { animation-delay: 0.12s; }
+        .country-item:nth-child(7) { animation-delay: 0.14s; }
+        .country-item:nth-child(8) { animation-delay: 0.16s; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .country-info {
-            flex: 1;
-        }
-
+        .country-info { flex: 1; min-width: 0; }
         .country-name {
             font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 4px;
+            font-size: 0.95em;
+            color: var(--text);
+            margin-bottom: 5px;
         }
-
         .country-family {
-            font-size: 0.85em;
-            padding: 3px 10px;
-            border-radius: 12px;
+            font-size: 0.72em;
+            padding: 2px 10px;
+            border-radius: 999px;
             display: inline-block;
-            font-weight: 500;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
         .family-riley {
-            background: #e3f2fd;
-            color: #1976d2;
+            background: rgba(34, 211, 238, 0.12);
+            color: var(--riley-soft);
+            border: 1px solid rgba(34, 211, 238, 0.3);
         }
-
         .family-murry {
-            background: #fff3e0;
-            color: #f57c00;
+            background: rgba(251, 191, 36, 0.12);
+            color: var(--murry-soft);
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
         .country-notes {
-            font-size: 0.85em;
-            color: var(--text-light);
-            margin-top: 4px;
-            font-style: italic;
-        }
-
-        .country-details {
-            font-size: 0.85em;
-            color: var(--text-light);
+            font-size: 0.82em;
+            color: var(--text-dim);
             margin-top: 6px;
+            font-style: italic;
+            overflow-wrap: anywhere;
+        }
+        .country-details {
+            font-size: 0.8em;
+            margin-top: 7px;
             display: flex;
-            gap: 10px;
+            gap: 7px;
             flex-wrap: wrap;
         }
-
         .detail-badge {
-            background: var(--border-color);
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 0.9em;
+            background: var(--glass-hi);
+            border: 1px solid var(--glass-brd);
+            padding: 3px 9px;
+            border-radius: 999px;
+            color: var(--text-dim);
         }
-
-        .difficulty-easy {
-            background: #c8e6c9;
-            color: #2e7d32;
-        }
-
-        .difficulty-medium {
-            background: #fff9c4;
-            color: #f57f17;
-        }
-
-        .difficulty-hard {
-            background: #ffccbc;
-            color: #d84315;
-        }
+        .difficulty-easy { background: rgba(52, 211, 153, 0.14); color: #6ee7b7; border-color: rgba(52, 211, 153, 0.3); }
+        .difficulty-medium { background: rgba(251, 191, 36, 0.14); color: var(--murry-soft); border-color: rgba(251, 191, 36, 0.3); }
+        .difficulty-hard { background: rgba(251, 113, 133, 0.14); color: #fda4af; border-color: rgba(251, 113, 133, 0.3); }
 
         .wiki-link {
-            color: #2196F3;
+            color: var(--riley-soft);
             text-decoration: none;
-            font-size: 0.85em;
-            margin-top: 4px;
+            font-size: 0.8em;
+            margin-top: 6px;
             display: inline-block;
         }
+        .wiki-link:hover { text-decoration: underline; }
+        .country-date { font-size: 0.75em; color: var(--text-faint); margin-top: 4px; }
 
-        .wiki-link:hover {
-            text-decoration: underline;
-        }
-
-        .country-date {
-            font-size: 0.8em;
-            color: var(--text-light);
-            margin-top: 2px;
-        }
-
-        .country-actions {
-            display: flex;
-            gap: 5px;
-        }
+        .country-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
         .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .btn-zoom {
-            background: #2196F3;
-            color: white;
-            padding: 5px 10px;
-            font-size: 0.8em;
-        }
-
-        .btn-zoom:hover {
-            background: #1976D2;
-        }
-
-        .btn-edit {
-            background: #4caf50;
-            color: white;
-        }
-
-        .btn-edit:hover {
-            background: #45a049;
-        }
-
-        .btn-delete {
-            background: #f44336;
-            color: white;
-        }
-
-        .btn-delete:hover {
-            background: #da190b;
-        }
-
-        .btn-reset {
-            background: #ff5722;
-            color: white;
-            width: 100%;
-            padding: 12px;
-            margin-top: 20px;
-        }
-
-        .btn-reset:hover {
-            background: #e64a19;
-        }
-
-        .backup-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 2px solid var(--border-color);
-        }
-
-        .backup-title {
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-
-        .backup-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-backup {
-            background: #2196F3;
-            color: white;
-            width: 100%;
-            padding: 12px;
-        }
-
-        .btn-backup:hover {
-            background: #1976D2;
-        }
-
-        .btn-restore {
-            background: #4CAF50;
-            color: white;
-            width: 100%;
-            padding: 12px;
-        }
-
-        .btn-restore:hover {
-            background: #45a049;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        .legend {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            box-shadow: 0 2px 8px var(--shadow);
-        }
-
-        .legend-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--text-color);
-        }
-
-        .legend-item span {
-            color: var(--text-color);
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .legend-color {
-            width: 30px;
-            height: 20px;
-            border-radius: 4px;
-            margin-right: 10px;
-            border: 1px solid #ccc;
-        }
-
-        .instructions {
-            background: #e8eaf6;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-            color: #333;
-        }
-
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--container-bg);
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-
-        .modal-title {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            color: var(--text-color);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-light);
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            font-size: 1em;
             font-family: inherit;
-            background: var(--card-bg);
-            color: var(--text-color);
+            padding: 8px 14px;
+            border: 1px solid var(--glass-brd);
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 0.82em;
+            font-weight: 500;
+            background: var(--glass-bg);
+            color: var(--text);
+            transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s, background 0.18s;
         }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
 
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
-        }
+        .btn-zoom { padding: 6px 10px; font-size: 0.76em; color: var(--riley-soft); }
+        .btn-zoom:hover { border-color: var(--riley); box-shadow: 0 0 14px -2px var(--riley-glow); }
+        .btn-edit:hover { border-color: var(--ok); box-shadow: 0 0 14px -2px rgba(52, 211, 153, 0.4); color: #6ee7b7; }
+        .btn-delete:hover { border-color: var(--bad); box-shadow: 0 0 14px -2px rgba(251, 113, 133, 0.4); color: #fda4af; }
 
         .btn-primary {
-            background: #667eea;
-            color: white;
+            background: var(--accent-grad);
+            background-size: 160% 100%;
+            border: none;
+            color: #fff;
             flex: 1;
+            font-weight: 600;
         }
+        .btn-primary:hover { box-shadow: 0 8px 26px -6px var(--riley-glow); background-position: 100% 0; }
 
-        .btn-primary:hover {
-            background: #5568d3;
-        }
+        .btn-secondary { flex: 1; color: var(--text-dim); }
+        .btn-secondary:hover { border-color: var(--glass-hi); }
 
-        .btn-secondary {
-            background: #ccc;
-            color: #333;
-            flex: 1;
+        .btn-random {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 12px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #fff;
+            border: none;
+            background: var(--accent-grad);
+            background-size: 200% 100%;
+            position: relative;
+            overflow: hidden;
         }
+        .btn-random:hover { box-shadow: 0 10px 30px -8px var(--riley-glow); }
+        .btn-random::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+            transform: translateX(-100%);
+        }
+        .btn-random:hover::after { animation: shimmer 1s ease; }
 
-        .btn-secondary:hover {
-            background: #bbb;
+        .btn-reset {
+            width: 100%;
+            padding: 12px;
+            margin-top: 18px;
+            color: #fda4af;
+            background: rgba(251, 113, 133, 0.08);
+            border-color: rgba(251, 113, 133, 0.28);
         }
+        .btn-reset:hover { background: rgba(251, 113, 133, 0.16); box-shadow: 0 0 18px -4px rgba(251, 113, 133, 0.4); }
+
+        .backup-section {
+            margin-top: 22px;
+            padding-top: 20px;
+            border-top: 1px solid var(--glass-brd);
+        }
+        .backup-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 13px;
+            font-size: 0.95em;
+        }
+        .backup-buttons { display: flex; flex-direction: column; gap: 9px; }
+        .btn-backup { width: 100%; padding: 11px; color: var(--riley-soft); }
+        .btn-backup:hover { border-color: var(--riley); box-shadow: 0 0 16px -3px var(--riley-glow); }
+        .btn-restore { width: 100%; padding: 11px; color: #6ee7b7; }
+        .btn-restore:hover { border-color: var(--ok); box-shadow: 0 0 16px -3px rgba(52, 211, 153, 0.4); }
+        #fileInput { display: none; }
 
         .empty-state {
             text-align: center;
-            color: var(--text-light);
-            padding: 20px;
+            color: var(--text-faint);
+            padding: 18px;
             font-style: italic;
+            font-size: 0.9em;
         }
 
-        .search-box {
-            margin-bottom: 15px;
+        /* ---------- Modal ---------- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 5, 9, 0.62);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
+        .modal.active { display: flex; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .search-box input {
+        .modal-content {
+            background: var(--glass-bg-strong);
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            border: 1px solid var(--glass-hi);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 440px;
             width: 100%;
-            padding: 10px;
-            border: 2px solid var(--border-color);
-            border-radius: 5px;
+            box-shadow: var(--shadow-lg);
+            animation: popIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.92) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 22px;
+            color: var(--text);
+        }
+
+        .form-group { margin-bottom: 18px; }
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 500;
+            font-size: 0.85em;
+            color: var(--text-dim);
+        }
+        input, textarea {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid var(--glass-brd);
+            border-radius: var(--radius-sm);
             font-size: 0.95em;
-            background: var(--card-bg);
-            color: var(--text-color);
+            font-family: inherit;
+            background: var(--glass-bg);
+            color: var(--text);
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-
-        .search-box input:focus {
+        input::placeholder, textarea::placeholder { color: var(--text-faint); }
+        input:focus, textarea:focus, .modal select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--riley);
+            box-shadow: 0 0 0 3px var(--riley-glow);
+        }
+        input[readonly] { opacity: 0.65; cursor: not-allowed; }
+        textarea { resize: vertical; min-height: 78px; }
+        .modal select { width: 100%; }
+
+        .form-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+        /* ---------- Loading overlay (restored) ---------- */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            background: rgba(4, 5, 9, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            padding: 34px 44px;
+            background: var(--glass-bg-strong);
+            border: 1px solid var(--glass-hi);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(20px);
+        }
+        .spinner {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.12);
+            border-top-color: var(--riley);
+            animation: spin 0.8s linear infinite;
+            box-shadow: 0 0 26px -4px var(--riley-glow);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loadingText { color: var(--text-dim); font-size: 0.9em; font-weight: 500; }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 1000px) {
+            .content { grid-template-columns: 1fr; }
+            .map-section { border-right: none; border-bottom: 1px solid var(--glass-brd); }
+            .sidebar { max-height: none; }
+            #map { height: 460px; }
+        }
+        @media (max-width: 560px) {
+            body { padding: 14px 10px 40px; }
+            header { padding: 34px 18px 24px; }
+            .header-controls { position: static; justify-content: center; margin-bottom: 14px; }
+            .map-section, .sidebar { padding: 16px; }
+            .stat-number { font-size: 1.7em; }
         }
 
-        @media (max-width: 968px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-
-            .map-section {
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-            }
-
-            .sidebar {
-                max-height: none;
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001s !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001s !important;
             }
         }
 
+        /* ---------- Print ---------- */
         @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-
-            .container {
-                box-shadow: none;
-            }
-
-            .map-section, .modal, .btn-reset, .search-box, .header-controls, .map-controls {
-                display: none !important;
-            }
-
-            .content {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                max-height: none;
-                background: white;
-            }
-
-            .country-actions {
-                display: none;
-            }
-
-            header {
-                background: #667eea;
-                color: white;
-                page-break-after: avoid;
-            }
-
-            .section-title {
-                page-break-after: avoid;
-            }
-
-            .country-item {
-                page-break-inside: avoid;
-            }
+            body { background: #fff; color: #000; padding: 0; }
+            body::before, body::after { display: none; }
+            .container { box-shadow: none; border: none; background: #fff; backdrop-filter: none; }
+            .map-section, .modal, .loading-overlay, .btn-reset, .search-box,
+            .header-controls, .map-controls, .backup-section, .btn-random, .country-actions { display: none !important; }
+            .content { grid-template-columns: 1fr; }
+            .sidebar { max-height: none; background: #fff; overflow: visible; }
+            header { background: #fff; }
+            h1, .stat-number { -webkit-text-fill-color: #000; color: #000; }
+            .country-item { page-break-inside: avoid; border: 1px solid #ccc; }
+            .section-title { page-break-after: avoid; }
         }
     </style>
 </head>
@@ -656,37 +846,41 @@
     <div class="container">
         <header>
             <div class="header-controls">
-                <button class="control-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">Dark</button>
-                <button class="control-btn" onclick="window.print()" title="Print View">Print</button>
+                <button class="control-btn" id="themeToggle" onclick="toggleDarkMode()" title="Toggle theme">&#9790; Dark</button>
+                <button class="control-btn" onclick="window.print()" title="Print view">&#128424; Print</button>
             </div>
             <h1>World Dinner Map Tracker</h1>
-            <p class="subtitle">Track themed dinners hosted by Riley and Murry families</p>
+            <p class="subtitle">Themed dinners hosted by the
+                <span class="fam riley">Riley</span> &amp;
+                <span class="fam murry">Murry</span> families</p>
         </header>
 
         <div class="content">
             <div class="map-section">
                 <div class="map-controls">
-                    <label for="mapStyle">Map Style:</label>
+                    <label for="mapStyle">Map style</label>
                     <select id="mapStyle" onchange="changeMapStyle()">
-                        <option value="osm">Street Map</option>
-                        <option value="topo">Topographic</option>
+                        <option value="osm">Dark</option>
+                        <option value="topo">Light</option>
                         <option value="satellite">Satellite</option>
                     </select>
                 </div>
-                <div id="map"></div>
+                <div class="map-wrap">
+                    <div id="map"></div>
+                </div>
             </div>
 
             <div class="sidebar">
                 <div class="stats">
-                    <div class="stat-card">
+                    <div class="stat-card" id="card-total">
                         <div class="stat-number" id="totalCount">0</div>
-                        <div class="stat-label">Total Dinners</div>
+                        <div class="stat-label">Dinners</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card" id="card-riley">
                         <div class="stat-number" id="rileyCount">0</div>
                         <div class="stat-label">Riley</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card" id="card-murry">
                         <div class="stat-number" id="murryCount">0</div>
                         <div class="stat-label">Murry</div>
                     </div>
@@ -694,34 +888,27 @@
 
                 <div class="progress-container">
                     <div class="progress-label">
-                        <span>Global Progress</span>
+                        <span>Global progress</span>
                         <span id="progressText">0 / 0</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+                        <div class="progress-fill" id="progressFill">0%</div>
                     </div>
                 </div>
 
                 <div class="legend">
-                    <div class="legend-title">Map Legend</div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #1976d2;"></div>
-                        <span>Riley Family</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #f57c00;"></div>
-                        <span>Murry Family</span>
-                    </div>
+                    <div class="legend-item"><span class="legend-dot riley"></span> Riley family</div>
+                    <div class="legend-item"><span class="legend-dot murry"></span> Murry family</div>
                 </div>
 
                 <h2 class="section-title">
-                    <span>Countries Completed (<span id="completedCount">0</span>)</span>
+                    <span>Completed <span class="count-badge" id="completedCount">0</span></span>
                     <select class="sort-select" id="sortCompleted" onchange="updateUI()">
-                        <option value="name">Sort: A-Z</option>
-                        <option value="name-desc">Sort: Z-A</option>
-                        <option value="date-new">Sort: Newest</option>
-                        <option value="date-old">Sort: Oldest</option>
-                        <option value="family">Sort: Family</option>
+                        <option value="name">A &ndash; Z</option>
+                        <option value="name-desc">Z &ndash; A</option>
+                        <option value="date-new">Newest</option>
+                        <option value="date-old">Oldest</option>
+                        <option value="family">By family</option>
                     </select>
                 </h2>
                 <div class="search-box">
@@ -730,26 +917,23 @@
                 <ul class="country-list" id="completedList"></ul>
 
                 <h2 class="section-title">
-                    <span>Countries Not Yet Done (<span id="notCompletedCount">0</span>)</span>
+                    <span>Not yet done <span class="count-badge" id="notCompletedCount">0</span></span>
                 </h2>
                 <div class="search-box">
                     <input type="text" id="countrySearch" placeholder="Search countries..." oninput="filterNotCompletedCountries()">
                 </div>
-                <button class="btn" onclick="pickRandomCountry()" style="width: 100%; margin-bottom: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    Pick Random Country
-                </button>
+                <button class="btn btn-random" onclick="pickRandomCountry()">&#127922; Pick a random country</button>
                 <ul class="country-list" id="notCompletedList"></ul>
 
                 <div class="backup-section">
-                    <div class="backup-title">Data Management</div>
+                    <div class="backup-title">Data management</div>
                     <div class="backup-buttons">
-                        <button class="btn btn-backup" onclick="exportData()">Download Backup</button>
-                        <button class="btn btn-restore" onclick="document.getElementById('fileInput').click()">Upload Backup</button>
+                        <button class="btn btn-backup" onclick="exportData()">&#8595; Download backup</button>
+                        <button class="btn btn-restore" onclick="document.getElementById('fileInput').click()">&#8593; Upload backup</button>
                         <input type="file" id="fileInput" accept=".json" onchange="importData(event)">
                     </div>
+                    <button class="btn btn-reset" onclick="resetAllData()">Reset all data</button>
                 </div>
-
-                <button class="btn btn-reset" onclick="resetAllData()">Reset All Data</button>
             </div>
         </div>
     </div>
@@ -760,25 +944,25 @@
             <h2 class="modal-title" id="modalTitle">Add Country</h2>
             <form id="countryForm" onsubmit="saveCountry(event)">
                 <div class="form-group">
-                    <label for="countryName">Country Name</label>
+                    <label for="countryName">Country</label>
                     <input type="text" id="countryName" readonly>
                 </div>
                 <div class="form-group">
-                    <label for="familyCode">Family Code</label>
-                    <input type="text" id="familyCode" placeholder="Enter 'riley' or 'murry'" required>
+                    <label for="familyCode">Family code</label>
+                    <input type="text" id="familyCode" placeholder="Enter 'riley' or 'murry'" required autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="notes">Notes (optional)</label>
                     <textarea id="notes" placeholder="Dish, date, theme, etc."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="cuisine">Cuisine Type (optional)</label>
-                    <input type="text" id="cuisine" placeholder="e.g., Mediterranean, Asian, Fusion">
+                    <label for="cuisine">Cuisine type (optional)</label>
+                    <input type="text" id="cuisine" placeholder="e.g. Mediterranean, Asian, Fusion" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="difficulty">Difficulty (optional)</label>
                     <select id="difficulty">
-                        <option value="">-- Select --</option>
+                        <option value="">&mdash; Select &mdash;</option>
                         <option value="easy">Easy</option>
                         <option value="medium">Medium</option>
                         <option value="hard">Hard</option>
@@ -802,7 +986,7 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
+
     <script>
         /**
          * GOOGLE SHEETS INTEGRATION
@@ -810,12 +994,6 @@
          */
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdsunLsCgREpIKBnsMNgZHwjbxpx8opu9wn559ZqWUC-XPrDwOAK9yCQ9PXy5Q_NO9bg/exec';
         const USE_GOOGLE_SHEETS = true;
-
-        /**
-         * DATA STORAGE
-         * Data is now stored in Google Sheets via Apps Script API
-         * localStorage is used as a cache for faster loading
-         */
 
         let dinnerData = {};
         let map;
@@ -825,21 +1003,67 @@
         let currentTileLayer = null;
         let mapStyles = {
             osm: {
-                url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                attribution: '© OpenStreetMap contributors © CARTO'
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 16
             },
             topo: {
-                url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
-                attribution: '© OpenTopoMap contributors'
+                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 16
             },
             satellite: {
                 url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                attribution: '© Esri'
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 18
             }
         };
 
+        // Escape user-supplied text before putting it in the DOM
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function(c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        // Animate a stat number from its previous value to a new one
+        function animateCount(id, target) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const start = parseInt(el.dataset.val || '0', 10);
+            target = target || 0;
+            if (start === target) { el.textContent = target; el.dataset.val = target; return; }
+            el.dataset.val = target;
+            const duration = 650;
+            const t0 = performance.now();
+            function tick(now) {
+                const p = Math.min((now - t0) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(start + (target - start) * eased);
+                if (p < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+
+        // Apply light / dark theme
+        function applyTheme(mode) {
+            const light = mode === 'light';
+            document.body.classList.toggle('light-mode', light);
+            const btn = document.getElementById('themeToggle');
+            if (btn) btn.innerHTML = light ? '&#9728; Light' : '&#9790; Dark';
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', light ? '#e9edf6' : '#0a0b10');
+        }
+
+        function toggleDarkMode() {
+            const goLight = !document.body.classList.contains('light-mode');
+            applyTheme(goLight ? 'light' : 'dark');
+            localStorage.setItem('theme', goLight ? 'light' : 'dark');
+        }
+
         // Initialize the application
         async function init() {
+            applyTheme(localStorage.getItem('theme') === 'light' ? 'light' : 'dark');
             showLoading('Loading data from Google Sheets...');
             try {
                 await loadData();
@@ -858,7 +1082,7 @@
             try {
                 const response = await fetch(SCRIPT_URL);
                 const result = await response.json();
-                
+
                 if (result.success) {
                     dinnerData = result.data || {};
                     console.log('Loaded data from Google Sheets:', Object.keys(dinnerData).length, 'countries');
@@ -924,11 +1148,11 @@
         }
 
         // Show loading overlay
-        function showLoading(message = 'Loading...') {
+        function showLoading(message) {
             const overlay = document.getElementById('loadingOverlay');
             const text = document.getElementById('loadingText');
             if (overlay && text) {
-                text.textContent = message;
+                text.textContent = message || 'Loading...';
                 overlay.classList.add('active');
             }
         }
@@ -943,44 +1167,30 @@
 
         // Initialize Leaflet map
         function initMap() {
-            map = L.map('map').setView([20, 0], 2);
+            map = L.map('map', { worldCopyJump: true }).setView([28, 8], 2);
 
-            // Use OpenStreetMap tiles (free and open-source)
             const style = mapStyles.osm;
             currentTileLayer = L.tileLayer(style.url, {
                 attribution: style.attribution,
-                maxZoom: 18
+                maxZoom: style.maxZoom || 18
             }).addTo(map);
 
-            // Load country boundaries
             loadCountryBoundaries();
-            
-            // Load dark mode preference
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.body.classList.add('dark-mode');
-            }
         }
 
         // Change map style
         function changeMapStyle() {
             const styleId = document.getElementById('mapStyle').value;
             const style = mapStyles[styleId];
-            
+
             if (currentTileLayer) {
                 map.removeLayer(currentTileLayer);
             }
-            
+
             currentTileLayer = L.tileLayer(style.url, {
                 attribution: style.attribution,
-                maxZoom: 18
+                maxZoom: style.maxZoom || 18
             }).addTo(map);
-        }
-
-        // Toggle dark mode
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            const isDark = document.body.classList.contains('dark-mode');
-            localStorage.setItem('darkMode', isDark);
         }
 
         // Zoom to country on map
@@ -994,42 +1204,42 @@
         // Pick a random country from the not-completed list
         function pickRandomCountry() {
             const notCompleted = allCountries.filter(country => !dinnerData[country]);
-            
+
             if (notCompleted.length === 0) {
                 alert('Congratulations! You have completed all countries!');
                 return;
             }
-            
-            const randomIndex = Math.floor(Math.random() * notCompleted.length);
-            const randomCountry = notCompleted[randomIndex];
-            
-            // Zoom to the country
+
+            const randomCountry = notCompleted[Math.floor(Math.random() * notCompleted.length)];
+
+            // Make sure it is visible in the list, then highlight it
+            const searchInput = document.getElementById('countrySearch');
+            if (searchInput) searchInput.value = '';
+            renderNotCompletedList();
             zoomToCountry(randomCountry);
-            
-            // Highlight and scroll to it in the list
+
             const listItems = document.querySelectorAll('#notCompletedList .country-item');
+            let matched = false;
             listItems.forEach(item => {
-                const countryName = item.querySelector('.country-name').textContent;
-                if (countryName === randomCountry) {
-                    item.style.backgroundColor = '#fff3cd';
-                    item.style.border = '2px solid #ffc107';
+                const nameEl = item.querySelector('.country-name');
+                if (nameEl && nameEl.textContent === randomCountry) {
+                    matched = true;
+                    item.style.borderColor = 'var(--riley)';
+                    item.style.boxShadow = '0 0 22px -4px var(--riley-glow)';
                     item.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // Reset highlight after 3 seconds
                     setTimeout(() => {
-                        item.style.backgroundColor = '';
-                        item.style.border = '';
-                    }, 3000);
+                        item.style.borderColor = '';
+                        item.style.boxShadow = '';
+                    }, 3200);
                 }
             });
-            
-            // Show an alert with the random country
-            alert(`Random Country Selected: ${randomCountry}\n\nThe country has been highlighted on the map and in the list!`);
+
+            alert(`Random country selected: ${randomCountry}` +
+                (matched ? '\n\nHighlighted on the map and in the list.' : '\n\nZoomed to it on the map.'));
         }
 
         // Load GeoJSON data for country boundaries
         function loadCountryBoundaries() {
-            // Using a simplified world countries GeoJSON from Natural Earth data
             fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
                 .then(response => response.json())
                 .then(data => {
@@ -1047,36 +1257,17 @@
                             });
 
                             layer.on('mouseover', function() {
-                                layer.setStyle({
-                                    weight: 3,
-                                    fillOpacity: 0.7
-                                });
+                                layer.setStyle({ weight: 2.5, fillOpacity: 0.75 });
                             });
 
                             layer.on('mouseout', function() {
                                 layer.setStyle(getCountryStyle(countryName));
                             });
 
-                            // Bind tooltip
-                            const dinner = dinnerData[countryName];
-                            let tooltip = `<strong>${countryName}</strong>`;
-                            if (dinner) {
-                                tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murry'} Family</strong>`;
-                                if (dinner.cuisine) {
-                                    tooltip += `<br>Cuisine: ${dinner.cuisine}`;
-                                }
-                                if (dinner.difficulty) {
-                                    tooltip += `<br>Difficulty: ${dinner.difficulty.charAt(0).toUpperCase() + dinner.difficulty.slice(1)}`;
-                                }
-                                if (dinner.notes) {
-                                    tooltip += `<br><em>${dinner.notes}</em>`;
-                                }
-                            }
-                            layer.bindTooltip(tooltip);
+                            layer.bindTooltip(buildTooltip(countryName), { sticky: true });
                         }
                     }).addTo(map);
-                    
-                    // Sort countries and update UI
+
                     allCountries.sort();
                     updateUI();
                 })
@@ -1086,41 +1277,61 @@
                 });
         }
 
+        // Build a tooltip string for a country (escaped)
+        function buildTooltip(countryName) {
+            const dinner = dinnerData[countryName];
+            let tooltip = `<strong>${escapeHtml(countryName)}</strong>`;
+            if (dinner) {
+                tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murry'} Family</strong>`;
+                if (dinner.cuisine) {
+                    tooltip += `<br>Cuisine: ${escapeHtml(dinner.cuisine)}`;
+                }
+                if (dinner.difficulty) {
+                    tooltip += `<br>Difficulty: ${escapeHtml(dinner.difficulty.charAt(0).toUpperCase() + dinner.difficulty.slice(1))}`;
+                }
+                if (dinner.notes) {
+                    tooltip += `<br><em>${escapeHtml(dinner.notes)}</em>`;
+                }
+            }
+            return tooltip;
+        }
+
         // Get style for a country based on dinner data
         function getCountryStyle(countryName) {
             const dinner = dinnerData[countryName];
-            
+
             if (!dinner) {
                 return {
-                    fillColor: '#cccccc',
-                    fillOpacity: 0.3,
-                    color: '#999',
-                    weight: 1
+                    fillColor: '#8b93a7',
+                    fillOpacity: 0.12,
+                    color: '#6b7185',
+                    weight: 0.8,
+                    className: 'country-glow country-empty'
                 };
             }
 
-            const fillColor = dinner.family === 'riley' ? '#1976d2' : '#f57c00';
+            const isRiley = dinner.family === 'riley';
             return {
-                fillColor: fillColor,
-                fillOpacity: 0.6,
-                color: '#333',
-                weight: 2
+                fillColor: isRiley ? '#22d3ee' : '#fbbf24',
+                fillOpacity: 0.55,
+                color: isRiley ? '#67e8f9' : '#fcd34d',
+                weight: 1.4,
+                className: 'country-glow ' + (isRiley ? 'country-riley' : 'country-murry')
             };
         }
 
         // Open modal for adding/editing country
         function openCountryModal(countryName) {
-            // Request password for changes
             const password = prompt('Enter password to make changes:');
             if (password !== 'dinner') {
-                alert('Incorrect password!');
+                if (password !== null) alert('Incorrect password!');
                 return;
             }
-            
+
             currentCountry = countryName;
             const dinner = dinnerData[countryName];
 
-            document.getElementById('modalTitle').textContent = 
+            document.getElementById('modalTitle').textContent =
                 dinner ? `Edit ${countryName}` : `Add ${countryName}`;
             document.getElementById('countryName').value = countryName;
             document.getElementById('familyCode').value = dinner ? dinner.family : '';
@@ -1129,6 +1340,7 @@
             document.getElementById('difficulty').value = dinner ? (dinner.difficulty || '') : '';
 
             document.getElementById('countryModal').classList.add('active');
+            document.getElementById('familyCode').focus();
         }
 
         // Close modal
@@ -1147,7 +1359,6 @@
             const cuisine = document.getElementById('cuisine').value.trim();
             const difficulty = document.getElementById('difficulty').value;
 
-            // Validate family code
             if (familyCode !== 'riley' && familyCode !== 'murry') {
                 alert('Please enter either "riley" or "murry" as the family code.');
                 return;
@@ -1156,7 +1367,6 @@
             showLoading('Saving...');
 
             try {
-                // Save data with date if new entry
                 const isNew = !dinnerData[currentCountry];
                 if (isNew) {
                     dinnerData[currentCountry] = {
@@ -1173,7 +1383,6 @@
                     dinnerData[currentCountry].difficulty = difficulty;
                 }
 
-                // Save to Google Sheets
                 await saveDataToSheets(currentCountry, dinnerData[currentCountry]);
 
                 updateCountryOnMap(currentCountry);
@@ -1188,20 +1397,19 @@
 
         // Delete country entry
         async function deleteCountry(countryName) {
-            // Request password for deletion
             const password = prompt('Enter password to delete:');
             if (password !== 'dinner') {
-                alert('Incorrect password!');
+                if (password !== null) alert('Incorrect password!');
                 return;
             }
-            
+
             if (confirm(`Remove ${countryName} from the list?`)) {
                 showLoading('Deleting...');
-                
+
                 try {
                     delete dinnerData[countryName];
                     await deleteFromSheets(countryName);
-                    
+
                     updateCountryOnMap(countryName);
                     updateUI();
                 } catch (error) {
@@ -1221,24 +1429,11 @@
         function updateCountryOnMap(countryName) {
             const layer = countryLayers[countryName];
             if (layer) {
-                layer.setStyle(getCountryStyle(countryName));
-                
-                // Update tooltip
-                const dinner = dinnerData[countryName];
-                let tooltip = `<strong>${countryName}</strong>`;
-                if (dinner) {
-                    tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murry'} Family</strong>`;
-                    if (dinner.cuisine) {
-                        tooltip += `<br>Cuisine: ${dinner.cuisine}`;
-                    }
-                    if (dinner.difficulty) {
-                        tooltip += `<br>Difficulty: ${dinner.difficulty.charAt(0).toUpperCase() + dinner.difficulty.slice(1)}`;
-                    }
-                    if (dinner.notes) {
-                        tooltip += `<br><em>${dinner.notes}</em>`;
-                    }
+                if (layer._path) {
+                    layer._path.classList.remove('country-riley', 'country-murry', 'country-empty', 'country-glow');
                 }
-                layer.setTooltipContent(tooltip);
+                layer.setStyle(getCountryStyle(countryName));
+                layer.setTooltipContent(buildTooltip(countryName));
             }
         }
 
@@ -1248,33 +1443,25 @@
             const rileyCount = countries.filter(c => dinnerData[c].family === 'riley').length;
             const murryCount = countries.filter(c => dinnerData[c].family === 'murry').length;
 
-            // Update stats
-            document.getElementById('totalCount').textContent = countries.length;
-            document.getElementById('rileyCount').textContent = rileyCount;
-            document.getElementById('murryCount').textContent = murryCount;
+            animateCount('totalCount', countries.length);
+            animateCount('rileyCount', rileyCount);
+            animateCount('murryCount', murryCount);
             document.getElementById('completedCount').textContent = countries.length;
 
-            // Update progress bar
-            const totalCountries = allCountries.length || 195; // approximate if not loaded
+            const totalCountries = allCountries.length || 195;
             const percentage = totalCountries > 0 ? Math.round((countries.length / totalCountries) * 100) : 0;
             document.getElementById('progressFill').style.width = percentage + '%';
             document.getElementById('progressFill').textContent = percentage + '%';
             document.getElementById('progressText').textContent = `${countries.length} / ${totalCountries}`;
 
-            // Get search term
             const searchTerm = document.getElementById('completedSearch')?.value.toLowerCase().trim() || '';
-            
-            // Filter by search
             if (searchTerm) {
                 countries = countries.filter(c => c.toLowerCase().includes(searchTerm));
             }
 
-            // Get sort option
             const sortOption = document.getElementById('sortCompleted')?.value || 'name';
-            
-            // Sort countries
             countries.sort((a, b) => {
-                switch(sortOption) {
+                switch (sortOption) {
                     case 'name-desc':
                         return b.localeCompare(a);
                     case 'date-new':
@@ -1284,12 +1471,11 @@
                     case 'family':
                         const famCompare = dinnerData[a].family.localeCompare(dinnerData[b].family);
                         return famCompare !== 0 ? famCompare : a.localeCompare(b);
-                    default: // name
+                    default:
                         return a.localeCompare(b);
                 }
             });
 
-            // Update completed list
             const completedList = document.getElementById('completedList');
             completedList.innerHTML = '';
 
@@ -1301,43 +1487,41 @@
                 countries.forEach(countryName => {
                     const dinner = dinnerData[countryName];
                     const li = document.createElement('li');
-                    li.className = 'country-item';
-                    
-                    const familyClass = dinner.family === 'riley' ? 'family-riley' : 'family-murry';
-                    const familyDisplay = dinner.family === 'riley' ? 'Riley' : 'Murry';
-                    
+                    const isRiley = dinner.family === 'riley';
+                    li.className = 'country-item ' + (isRiley ? 'is-riley' : 'is-murry');
+
+                    const familyClass = isRiley ? 'family-riley' : 'family-murry';
+                    const familyDisplay = isRiley ? 'Riley' : 'Murry';
+
                     let notesHtml = '';
                     if (dinner.notes) {
-                        notesHtml = `<div class="country-notes">${dinner.notes}</div>`;
+                        notesHtml = `<div class="country-notes">${escapeHtml(dinner.notes)}</div>`;
                     }
-                    
-                    let detailsHtml = '';
+
                     const details = [];
                     if (dinner.cuisine) {
-                        details.push(`<span class="detail-badge">🍴 ${dinner.cuisine}</span>`);
+                        details.push(`<span class="detail-badge">&#127860; ${escapeHtml(dinner.cuisine)}</span>`);
                     }
                     if (dinner.difficulty) {
-                        const diffClass = `difficulty-${dinner.difficulty}`;
                         const diffText = dinner.difficulty.charAt(0).toUpperCase() + dinner.difficulty.slice(1);
-                        details.push(`<span class="detail-badge ${diffClass}">⭐ ${diffText}</span>`);
+                        details.push(`<span class="detail-badge difficulty-${escapeHtml(dinner.difficulty)}">&#9733; ${escapeHtml(diffText)}</span>`);
                     }
-                    if (details.length > 0) {
-                        detailsHtml = `<div class="country-details">${details.join('')}</div>`;
-                    }
-                    
-                    // Generate Wikipedia link
+                    const detailsHtml = details.length ? `<div class="country-details">${details.join('')}</div>` : '';
+
                     const wikiUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(countryName.replace(/ /g, '_'))}`;
-                    const wikiHtml = `<a href="${wikiUrl}" target="_blank" class="wiki-link" rel="noopener noreferrer">📖 Wikipedia</a>`;
-                    
+                    const wikiHtml = `<a href="${escapeHtml(wikiUrl)}" target="_blank" class="wiki-link" rel="noopener noreferrer">&#128214; Wikipedia</a>`;
+
                     let dateHtml = '';
                     if (dinner.dateAdded) {
                         const date = new Date(dinner.dateAdded);
-                        dateHtml = `<div class="country-date">Added: ${date.toLocaleDateString()}</div>`;
+                        if (!isNaN(date)) {
+                            dateHtml = `<div class="country-date">Added ${escapeHtml(date.toLocaleDateString())}</div>`;
+                        }
                     }
 
                     li.innerHTML = `
                         <div class="country-info">
-                            <div class="country-name">${countryName}</div>
+                            <div class="country-name">${escapeHtml(countryName)}</div>
                             <span class="country-family ${familyClass}">${familyDisplay}</span>
                             ${notesHtml}
                             ${detailsHtml}
@@ -1345,17 +1529,16 @@
                             ${dateHtml}
                         </div>
                         <div class="country-actions">
-                            <button class="btn btn-zoom" onclick="zoomToCountry('${countryName}')">Zoom</button>
-                            <button class="btn btn-edit" onclick="editCountry('${countryName}')">Edit</button>
-                            <button class="btn btn-delete" onclick="deleteCountry('${countryName}')">Delete</button>
+                            <button class="btn btn-zoom" data-act="zoom" data-country="${escapeHtml(countryName)}">Zoom</button>
+                            <button class="btn btn-edit" data-act="edit" data-country="${escapeHtml(countryName)}">Edit</button>
+                            <button class="btn btn-delete" data-act="delete" data-country="${escapeHtml(countryName)}">Delete</button>
                         </div>
                     `;
-                    
+
                     completedList.appendChild(li);
                 });
             }
-            
-            // Update not completed list
+
             renderNotCompletedList();
         }
 
@@ -1363,19 +1546,16 @@
         function renderNotCompletedList() {
             const notCompletedList = document.getElementById('notCompletedList');
             notCompletedList.innerHTML = '';
-            
+
             const notCompleted = allCountries.filter(c => !dinnerData[c]);
             document.getElementById('notCompletedCount').textContent = notCompleted.length;
-            
-            // Get search term
+
             const searchTerm = document.getElementById('countrySearch').value.toLowerCase().trim();
-            
-            // Filter by search term if provided
             let filteredCountries = notCompleted;
             if (searchTerm) {
                 filteredCountries = notCompleted.filter(c => c.toLowerCase().includes(searchTerm));
             }
-            
+
             if (notCompleted.length === 0) {
                 notCompletedList.innerHTML = '<li class="empty-state">All countries completed!</li>';
             } else if (allCountries.length === 0) {
@@ -1383,7 +1563,6 @@
             } else if (filteredCountries.length === 0) {
                 notCompletedList.innerHTML = '<li class="empty-state">No countries match your search</li>';
             } else {
-                // Show first 50 countries to avoid overwhelming the UI
                 const displayLimit = 50;
                 filteredCountries.slice(0, displayLimit).forEach(countryName => {
                     const li = document.createElement('li');
@@ -1391,17 +1570,18 @@
                     li.style.cursor = 'pointer';
                     li.innerHTML = `
                         <div class="country-info">
-                            <div class="country-name">${countryName}</div>
+                            <div class="country-name">${escapeHtml(countryName)}</div>
                         </div>
+                        <span class="wiki-link">Add &rarr;</span>
                     `;
                     li.onclick = () => openCountryModal(countryName);
                     notCompletedList.appendChild(li);
                 });
-                
+
                 if (filteredCountries.length > displayLimit) {
                     const li = document.createElement('li');
                     li.className = 'empty-state';
-                    li.innerHTML = `...and ${filteredCountries.length - displayLimit} more countries`;
+                    li.textContent = `...and ${filteredCountries.length - displayLimit} more countries`;
                     notCompletedList.appendChild(li);
                 }
             }
@@ -1414,26 +1594,24 @@
 
         // Reset all data
         async function resetAllData() {
-            // Request password for reset
             const password = prompt('Enter password to reset all data:');
             if (password !== 'admin') {
-                alert('Incorrect password!');
+                if (password !== null) alert('Incorrect password!');
                 return;
             }
-            
+
             if (confirm('Are you sure you want to delete ALL dinner data? This cannot be undone!')) {
                 if (confirm('Really sure? This will erase everything!')) {
                     showLoading('Resetting...');
-                    
+
                     try {
                         dinnerData = {};
                         await resetSheets();
-                        
-                        // Update all countries on map
+
                         Object.keys(countryLayers).forEach(countryName => {
                             updateCountryOnMap(countryName);
                         });
-                        
+
                         updateUI();
                         alert('All data has been reset!');
                     } catch (error) {
@@ -1447,13 +1625,12 @@
 
         // Export data as JSON file
         function exportData() {
-            // Request password for export
             const password = prompt('Enter password to download backup:');
             if (password !== 'admin') {
-                alert('Incorrect password!');
+                if (password !== null) alert('Incorrect password!');
                 return;
             }
-            
+
             const dataStr = JSON.stringify(dinnerData, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
@@ -1470,57 +1647,50 @@
 
         // Import data from JSON file
         async function importData(event) {
-            // Request password for import
             const password = prompt('Enter password to upload backup:');
             if (password !== 'admin') {
-                alert('Incorrect password!');
+                if (password !== null) alert('Incorrect password!');
                 event.target.value = '';
                 return;
             }
-            
+
             const file = event.target.files[0];
             if (!file) return;
-            
+
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    
-                    // Validate data structure
-                    if (typeof importedData !== 'object') {
+
+                    if (typeof importedData !== 'object' || importedData === null) {
                         throw new Error('Invalid data format');
                     }
-                    
-                    // Confirm before overwriting
+
                     const currentCount = Object.keys(dinnerData).length;
                     const importCount = Object.keys(importedData).length;
-                    
+
                     if (currentCount > 0) {
                         if (!confirm(`This will replace your current ${currentCount} entries with ${importCount} entries from the backup. Continue?`)) {
                             event.target.value = '';
                             return;
                         }
                     }
-                    
+
                     showLoading('Importing data...');
-                    
+
                     try {
-                        // Reset Google Sheets
                         await resetSheets();
-                        
-                        // Upload each country
+
                         for (const [country, data] of Object.entries(importedData)) {
                             await saveDataToSheets(country, data);
                         }
-                        
-                        // Reload data
+
                         dinnerData = importedData;
-                        
-                        // Update UI
+
                         Object.keys(countryLayers).forEach(countryName => {
                             updateCountryOnMap(countryName);
                         });
-                        
+
                         updateUI();
                         alert(`Backup restored successfully! ${importCount} countries loaded.`);
                     } catch (error) {
@@ -1533,17 +1703,32 @@
                     alert('Error reading backup file. Please make sure it is a valid backup file.');
                     console.error('Import error:', error);
                 }
-                
+
                 event.target.value = '';
             };
             reader.readAsText(file);
         }
+
+        // Delegated actions for the completed-countries list
+        document.getElementById('completedList').addEventListener('click', function(e) {
+            const btn = e.target.closest('button[data-act]');
+            if (!btn) return;
+            const country = btn.dataset.country;
+            if (btn.dataset.act === 'zoom') zoomToCountry(country);
+            else if (btn.dataset.act === 'edit') editCountry(country);
+            else if (btn.dataset.act === 'delete') deleteCountry(country);
+        });
 
         // Close modal when clicking outside
         document.getElementById('countryModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
             }
+        });
+
+        // Close modal on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
         });
 
         // Initialize app when page loads
