@@ -265,6 +265,59 @@
             z-index: 1;
         }
 
+        /* ---------- Map / Globe view toggle ---------- */
+        .view-toggle {
+            display: inline-flex;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            border-radius: 999px;
+            padding: 3px;
+            gap: 2px;
+        }
+        .vt-btn {
+            font-family: inherit;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            padding: 6px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.82em;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .vt-btn.active {
+            color: #fff;
+            background: var(--accent-grad);
+            background-size: 160% 100%;
+            box-shadow: 0 2px 12px -3px var(--riley-glow);
+        }
+        .style-group { display: flex; align-items: center; gap: 10px; }
+
+        #globeViz {
+            display: none;
+            width: 100%;
+            height: 640px;
+            border-radius: 17px;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 38%, #0b1224 0%, #05060c 68%);
+        }
+        #globeViz canvas { display: block; outline: none; }
+        .map-wrap.globe #map { display: none; }
+        .map-wrap.globe #globeViz { display: block; }
+
+        .tour-stage.tour-globe-mode #globeViz {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            display: block;
+            height: 100%;
+            border-radius: 0;
+            background: transparent;
+        }
+        .tour-stage.tour-globe-mode #tourMap { display: none; }
+
         /* Leaflet dark theming */
         .leaflet-container { background: #0b0d14; font-family: inherit; }
         .leaflet-bar a,
@@ -1002,7 +1055,8 @@
             .content { grid-template-columns: 1fr; }
             .map-section { border-right: none; border-bottom: 1px solid var(--glass-brd); }
             .sidebar { max-height: none; }
-            #map { height: 460px; }
+            #map, #globeViz { height: 460px; }
+            .map-controls { flex-wrap: wrap; }
         }
         @media (max-width: 560px) {
             body { padding: 14px 10px 40px; }
@@ -1052,16 +1106,23 @@
         <div class="content">
             <div class="map-section">
                 <div class="map-controls">
-                    <label for="mapStyle">Map style</label>
-                    <select id="mapStyle" onchange="changeMapStyle()">
-                        <option value="osm">Dark</option>
-                        <option value="topo">Light</option>
-                        <option value="satellite">Satellite</option>
-                    </select>
+                    <div class="view-toggle" id="viewToggle">
+                        <button class="vt-btn active" data-view="map" onclick="setView('map')" type="button">&#128506;&nbsp; Map</button>
+                        <button class="vt-btn" data-view="globe" onclick="setView('globe')" type="button">&#127760;&nbsp; Globe</button>
+                    </div>
+                    <span class="style-group" id="styleGroup">
+                        <label for="mapStyle">Style</label>
+                        <select id="mapStyle" onchange="changeMapStyle()">
+                            <option value="osm">Dark</option>
+                            <option value="topo">Light</option>
+                            <option value="satellite">Satellite</option>
+                        </select>
+                    </span>
                     <button class="btn btn-cinema" id="tourBtn" onclick="startTour()" title="Full-screen animated tour">&#9654;&nbsp; Play tour</button>
                 </div>
                 <div class="map-wrap">
                     <div id="map"></div>
+                    <div id="globeViz"></div>
                 </div>
             </div>
 
@@ -1477,6 +1538,7 @@
                     }).addTo(map);
 
                     allCountries.sort();
+                    computeCentroids();
                     updateUI();
                 })
                 .catch(error => {
@@ -1748,6 +1810,7 @@
             }
 
             renderNotCompletedList();
+            if (GLOBE && !TOUR.running) refreshGlobeData();
         }
 
         // Render not completed countries list
@@ -1917,6 +1980,221 @@
             reader.readAsText(file);
         }
 
+        /* ===================== 3D WEBGL GLOBE ===================== */
+        let GLOBE = null;
+        let globeView = 'map';
+        let globeLibPromise = null;
+        let globeReady = false;
+        let countryCentroids = {};
+
+        // Centroid (lat/lng) of each country's largest landmass, from the GeoJSON
+        function computeCentroids() {
+            if (!geojsonData || Object.keys(countryCentroids).length) return;
+            geojsonData.features.forEach(f => {
+                const g = f.geometry;
+                if (!g) return;
+                const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
+                let best = null, bestArea = -1;
+                polys.forEach(poly => {
+                    const ring = poly[0];
+                    if (!ring || !ring.length) return;
+                    let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity, sx = 0, sy = 0;
+                    ring.forEach(pt => {
+                        const x = pt[0], y = pt[1];
+                        if (x < minx) minx = x; if (x > maxx) maxx = x;
+                        if (y < miny) miny = y; if (y > maxy) maxy = y;
+                        sx += x; sy += y;
+                    });
+                    const area = (maxx - minx) * (maxy - miny);
+                    if (area > bestArea) { bestArea = area; best = { lng: sx / ring.length, lat: sy / ring.length }; }
+                });
+                if (best) countryCentroids[f.properties.name] = best;
+            });
+        }
+
+        function loadGlobeLib() {
+            if (window.Globe) return Promise.resolve();
+            if (globeLibPromise) return globeLibPromise;
+            globeLibPromise = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://unpkg.com/globe.gl@2.46.2/dist/globe.gl.min.js';
+                s.onload = () => resolve();
+                s.onerror = () => { globeLibPromise = null; reject(new Error('Failed to load globe.gl')); };
+                document.head.appendChild(s);
+            });
+            return globeLibPromise;
+        }
+
+        function globeCapColor(feat) {
+            const name = feat.properties.name;
+            const d = dinnerData[name];
+            if (TOUR.running && TOUR.activeCountry) {
+                if (name === TOUR.activeCountry) {
+                    return !d || d.family === 'riley' ? 'rgba(125,240,255,0.95)' : 'rgba(253,224,120,0.95)';
+                }
+                if (d) return d.family === 'riley' ? 'rgba(34,211,238,0.30)' : 'rgba(251,191,36,0.30)';
+                return 'rgba(70,80,100,0.05)';
+            }
+            if (d) return d.family === 'riley' ? 'rgba(34,211,238,0.82)' : 'rgba(251,191,36,0.82)';
+            return 'rgba(120,132,155,0.10)';
+        }
+        function globeSideColor(feat) {
+            const d = dinnerData[feat.properties.name];
+            if (d) return d.family === 'riley' ? 'rgba(13,110,140,0.92)' : 'rgba(176,116,20,0.92)';
+            return 'rgba(60,70,92,0.18)';
+        }
+        function globeAltitude(feat) {
+            const name = feat.properties.name;
+            const d = dinnerData[name];
+            if (TOUR.running && TOUR.activeCountry === name) return 0.16;
+            return d ? 0.06 : 0.007;
+        }
+        function globeLabel(feat) {
+            const name = feat.properties.name;
+            const d = dinnerData[name];
+            let h = '<div style="font:600 13px Inter,system-ui,sans-serif;color:#fff;background:rgba(11,13,20,0.94);' +
+                'border:1px solid rgba(255,255,255,0.14);padding:8px 12px;border-radius:10px;max-width:240px">' +
+                escapeHtml(name);
+            if (d) {
+                h += '<br><span style="color:' + (d.family === 'riley' ? '#67e8f9' : '#fcd34d') + ';font-weight:700">' +
+                    (d.family === 'riley' ? 'Riley' : 'Murry') + ' family</span>';
+                if (d.cuisine) h += '<br><span style="color:#9aa3b8">' + escapeHtml(d.cuisine) + '</span>';
+                if (d.notes) h += '<br><span style="color:#828aa0;font-style:italic">' + escapeHtml(d.notes) + '</span>';
+            } else {
+                h += '<br><span style="color:#828aa0">Not done yet</span>';
+            }
+            return h + '</div>';
+        }
+
+        function buildGlobeArcs() {
+            const list = tourList();
+            const arcs = [];
+            for (let i = 0; i < list.length - 1; i++) {
+                const a = countryCentroids[list[i]], b = countryCentroids[list[i + 1]];
+                if (!a || !b) continue;
+                arcs.push({
+                    startLat: a.lat, startLng: a.lng, endLat: b.lat, endLng: b.lng,
+                    color: ['rgba(158,193,255,0.12)', 'rgba(158,193,255,0.9)'], order: i
+                });
+            }
+            return arcs;
+        }
+        function buildGlobeRings() {
+            return Object.keys(dinnerData).map(name => {
+                const c = countryCentroids[name];
+                if (!c) return null;
+                const riley = dinnerData[name].family === 'riley';
+                return {
+                    lat: c.lat, lng: c.lng,
+                    color: t => (riley ? 'rgba(34,211,238,' : 'rgba(251,191,36,') + (1 - t).toFixed(2) + ')'
+                };
+            }).filter(Boolean);
+        }
+
+        function refreshGlobeData() {
+            if (!GLOBE) return;
+            GLOBE.polygonsData(geojsonData.features.slice())
+                .polygonCapColor(globeCapColor)
+                .polygonAltitude(globeAltitude)
+                .arcsData(buildGlobeArcs())
+                .ringsData(buildGlobeRings());
+        }
+
+        // Cheap repaint of just the polygon styling (used during the tour)
+        function globeRepaint() {
+            if (!GLOBE) return;
+            GLOBE.polygonsData(geojsonData.features.slice())
+                .polygonCapColor(globeCapColor)
+                .polygonAltitude(globeAltitude);
+        }
+
+        function sizeGlobe() {
+            if (!GLOBE) return;
+            const el = document.getElementById('globeViz');
+            const rect = el.getBoundingClientRect();
+            GLOBE.width(Math.max(rect.width, 200)).height(Math.max(rect.height, 200));
+        }
+
+        async function initGlobe() {
+            if (GLOBE) return;
+            await loadGlobeLib();
+            if (!geojsonData) throw new Error('Map data not ready');
+            computeCentroids();
+
+            GLOBE = Globe()(document.getElementById('globeViz'))
+                .backgroundColor('rgba(0,0,0,0)')
+                .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg')
+                .showAtmosphere(true)
+                .atmosphereColor('#3b82f6')
+                .atmosphereAltitude(0.16)
+                .polygonsData(geojsonData.features.slice())
+                .polygonCapColor(globeCapColor)
+                .polygonSideColor(globeSideColor)
+                .polygonStrokeColor(() => 'rgba(255,255,255,0.12)')
+                .polygonAltitude(globeAltitude)
+                .polygonsTransitionDuration(500)
+                .polygonLabel(globeLabel)
+                .onPolygonClick(feat => openCountryModal(feat.properties.name))
+                .arcColor('color')
+                .arcStroke(0.55)
+                .arcDashLength(0.4)
+                .arcDashGap(0.18)
+                .arcDashInitialGap(a => a.order * 0.35)
+                .arcDashAnimateTime(2600)
+                .arcAltitudeAutoScale(0.45)
+                .arcsTransitionDuration(700)
+                .ringColor('color')
+                .ringMaxRadius(3.6)
+                .ringPropagationSpeed(1.2)
+                .ringRepeatPeriod(1700)
+                .ringAltitude(0.061);
+
+            const controls = GLOBE.controls();
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.42;
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.12;
+            controls.minDistance = 135;
+            controls.maxDistance = 520;
+
+            GLOBE.pointOfView({ lat: 22, lng: 8, altitude: 2.0 }, 0);
+            sizeGlobe();
+            refreshGlobeData();
+            globeReady = true;
+        }
+
+        function setView(v) {
+            if (v === globeView) return;
+            const wrap = document.querySelector('.map-wrap');
+            const styleGroup = document.getElementById('styleGroup');
+
+            if (v === 'globe') {
+                showLoading('Spinning up the globe…');
+                initGlobe().then(() => {
+                    globeView = 'globe';
+                    wrap.classList.add('globe');
+                    if (styleGroup) styleGroup.style.display = 'none';
+                    document.querySelectorAll('.vt-btn').forEach(b => b.classList.toggle('active', b.dataset.view === 'globe'));
+                    setTimeout(sizeGlobe, 60);
+                    hideLoading();
+                }).catch(err => {
+                    console.error('Globe init failed:', err);
+                    hideLoading();
+                    alert('Could not load the 3D globe — check your connection and try again.');
+                });
+            } else {
+                globeView = 'map';
+                wrap.classList.remove('globe');
+                if (styleGroup) styleGroup.style.display = '';
+                document.querySelectorAll('.vt-btn').forEach(b => b.classList.toggle('active', b.dataset.view === 'map'));
+                if (map) setTimeout(() => map.invalidateSize(), 60);
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (GLOBE && (globeView === 'globe' || TOUR.onGlobe)) sizeGlobe();
+        });
+
         /* ================= CINEMA TOUR / SCREENSAVER ================= */
         const TOUR = {
             running: false,
@@ -1928,6 +2206,9 @@
             arc: null,
             startedAt: 0,
             wasFs: false,
+            onGlobe: false,
+            activeCountry: null,
+            stepToken: 0,
             reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches
         };
         const TOUR_IDLE_MS = 180000; // auto-start after 3 minutes idle
@@ -2093,6 +2374,8 @@
 
         function tourStep() {
             if (!TOUR.running) return;
+            const token = ++TOUR.stepToken;
+            tourClearTimers();
             const name = TOUR.order[TOUR.idx];
             const prev = TOUR.order[(TOUR.idx - 1 + TOUR.order.length) % TOUR.order.length];
             const layer = TOUR.layers[name];
@@ -2116,7 +2399,7 @@
 
             // Reveal the caption once the camera has arrived, then slow Ken-Burns drift
             TOUR.timers.push(setTimeout(() => {
-                if (!TOUR.running) return;
+                if (!TOUR.running || token !== TOUR.stepToken) return;
 
                 // Fallback: if the fly animation stalled, snap to the target
                 if (target && TOUR.map) {
@@ -2144,14 +2427,53 @@
                         );
                     } catch (e) { /* ignore */ }
                 }
-            }, flight * 1000 + 150));
 
-            // Advance
+                // Advance
+                TOUR.timers.push(setTimeout(() => {
+                    if (!TOUR.running || token !== TOUR.stepToken) return;
+                    TOUR.idx = (TOUR.idx + 1) % TOUR.order.length;
+                    tourStep();
+                }, hold * 1000 + 500));
+            }, flight * 1000 + 150));
+        }
+
+        // One step of the tour when it is flying the 3D globe
+        function tourStepGlobe() {
+            if (!TOUR.running) return;
+            const token = ++TOUR.stepToken;
+            tourClearTimers();
+            const name = TOUR.order[TOUR.idx];
+            const cap = document.getElementById('tourCaption');
+            cap.classList.remove('show');
+            tourRenderDots();
+
+            const flight = TOUR.reduced ? 0.8 : 3.8;
+            const hold = TOUR.reduced ? 4 : 6.5;
+
+            TOUR.activeCountry = name;
+            globeRepaint();
+
+            const c = countryCentroids[name];
+            if (c && GLOBE) {
+                try { GLOBE.pointOfView({ lat: c.lat, lng: c.lng, altitude: 1.45 }, flight * 1000); } catch (e) { /* ignore */ }
+            }
+
             TOUR.timers.push(setTimeout(() => {
-                if (!TOUR.running) return;
-                TOUR.idx = (TOUR.idx + 1) % TOUR.order.length;
-                tourStep();
-            }, (flight + hold) * 1000 + 500));
+                if (!TOUR.running || token !== TOUR.stepToken) return;
+                tourRenderCaption(name);
+                cap.classList.add('show');
+                if (!TOUR.reduced && c && GLOBE) {
+                    try {
+                        GLOBE.pointOfView({ lat: c.lat + 3, lng: c.lng + 8, altitude: 1.62 }, hold * 1000);
+                    } catch (e) { /* ignore */ }
+                }
+
+                TOUR.timers.push(setTimeout(() => {
+                    if (!TOUR.running || token !== TOUR.stepToken) return;
+                    TOUR.idx = (TOUR.idx + 1) % TOUR.order.length;
+                    tourStepGlobe();
+                }, hold * 1000 + 500));
+            }, flight * 1000 + 200));
         }
 
         function startTour(auto) {
@@ -2171,11 +2493,20 @@
             TOUR.running = true;
             TOUR.startedAt = Date.now();
             TOUR.wasFs = false;
+            TOUR.activeCountry = null;
+            TOUR.onGlobe = (globeView === 'globe' && GLOBE && globeReady);
 
             const stage = document.getElementById('tourStage');
             stage.classList.add('active');
             document.body.style.overflow = 'hidden';
-            buildTourMap();
+
+            if (TOUR.onGlobe) {
+                stage.classList.add('tour-globe-mode');
+                stage.insertBefore(document.getElementById('globeViz'), stage.firstChild);
+                GLOBE.controls().autoRotate = false;
+            } else {
+                buildTourMap();
+            }
 
             if (!auto && stage.requestFullscreen) {
                 stage.requestFullscreen().catch(() => {});
@@ -2183,8 +2514,13 @@
 
             TOUR.timers.push(setTimeout(() => {
                 if (!TOUR.running) return;
-                if (TOUR.map) TOUR.map.invalidateSize();
-                tourStep();
+                if (TOUR.onGlobe) {
+                    sizeGlobe();
+                    tourStepGlobe();
+                } else {
+                    if (TOUR.map) TOUR.map.invalidateSize();
+                    tourStep();
+                }
             }, 380));
 
             document.addEventListener('keydown', tourKeyExit, true);
@@ -2202,10 +2538,25 @@
             document.removeEventListener('mousemove', tourMoveExit, true);
             document.removeEventListener('fullscreenchange', tourFsChange);
 
+            const stage = document.getElementById('tourStage');
             document.getElementById('tourCaption').classList.remove('show');
-            document.getElementById('tourStage').classList.remove('active');
+            stage.classList.remove('active');
             document.body.style.overflow = '';
             if (TOUR.arc && TOUR.map) { TOUR.map.removeLayer(TOUR.arc); TOUR.arc = null; }
+
+            if (TOUR.onGlobe) {
+                stage.classList.remove('tour-globe-mode');
+                document.querySelector('.map-wrap').appendChild(document.getElementById('globeViz'));
+                TOUR.activeCountry = null;
+                globeRepaint();
+                if (GLOBE) {
+                    GLOBE.controls().autoRotate = true;
+                    GLOBE.pointOfView({ lat: 22, lng: 8, altitude: 2.0 }, 900);
+                    setTimeout(sizeGlobe, 60);
+                }
+                TOUR.onGlobe = false;
+            }
+
             if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
             resetTourIdle();
         }
@@ -2221,6 +2572,7 @@
         }
         function tourFsChange() {
             if (TOUR.map) setTimeout(() => { if (TOUR.map) TOUR.map.invalidateSize(); }, 180);
+            if (TOUR.onGlobe) setTimeout(sizeGlobe, 200);
             if (TOUR.running && TOUR.wasFs && !document.fullscreenElement) {
                 stopTour();
             }
