@@ -217,6 +217,7 @@
         .map-section {
             padding: 24px;
             border-right: 1px solid var(--glass-brd);
+            min-width: 0;
         }
 
         .map-controls {
@@ -224,6 +225,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
         .map-controls label {
             color: var(--text-dim);
@@ -253,6 +255,8 @@
             position: relative;
             border-radius: 18px;
             padding: 1px;
+            min-width: 0;
+            overflow: hidden;
             background: linear-gradient(140deg, var(--glass-hi), transparent 40%, var(--riley-glow));
             box-shadow: 0 0 50px -12px var(--riley-glow), var(--shadow-card);
         }
@@ -298,12 +302,13 @@
         #globeViz {
             display: none;
             width: 100%;
+            max-width: 100%;
             height: 640px;
             border-radius: 17px;
             overflow: hidden;
             background: radial-gradient(circle at 50% 38%, #0b1224 0%, #05060c 68%);
         }
-        #globeViz canvas { display: block; outline: none; }
+        #globeViz canvas { display: block; outline: none; max-width: 100%; }
         .map-wrap.globe #map { display: none; }
         .map-wrap.globe #globeViz { display: block; }
 
@@ -2111,8 +2116,12 @@
         function sizeGlobe() {
             if (!GLOBE) return;
             const el = document.getElementById('globeViz');
+            // globe.gl writes fixed px width/height onto the element; clear them
+            // so it re-measures from the current CSS box (inline vs. fullscreen)
+            el.style.width = '';
+            el.style.height = '';
             const rect = el.getBoundingClientRect();
-            GLOBE.width(Math.max(rect.width, 200)).height(Math.max(rect.height, 200));
+            GLOBE.width(Math.max(Math.round(rect.width), 200)).height(Math.max(Math.round(rect.height), 200));
         }
 
         async function initGlobe() {
@@ -2546,13 +2555,17 @@
 
             if (TOUR.onGlobe) {
                 stage.classList.remove('tour-globe-mode');
-                document.querySelector('.map-wrap').appendChild(document.getElementById('globeViz'));
+                const gv = document.getElementById('globeViz');
+                gv.style.width = '';
+                gv.style.height = '';
+                document.querySelector('.map-wrap').appendChild(gv);
                 TOUR.activeCountry = null;
                 globeRepaint();
                 if (GLOBE) {
                     GLOBE.controls().autoRotate = true;
                     GLOBE.pointOfView({ lat: 22, lng: 8, altitude: 2.0 }, 900);
-                    setTimeout(sizeGlobe, 60);
+                    sizeGlobe();
+                    setTimeout(sizeGlobe, 80);
                 }
                 TOUR.onGlobe = false;
             }
