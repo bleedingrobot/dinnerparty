@@ -1243,7 +1243,7 @@
         <div class="tour-stars"></div>
         <div class="tour-vignette"></div>
         <div class="tour-dots" id="tourDots"></div>
-        <div class="tour-exit" id="tourExit" onclick="stopTour()">Esc to exit</div>
+        <div class="tour-exit" id="tourExit" onclick="stopTour()">Esc / click to exit</div>
         <div class="tour-caption" id="tourCaption"></div>
     </div>
 
@@ -2216,6 +2216,7 @@
             startedAt: 0,
             wasFs: false,
             onGlobe: false,
+            auto: false,
             activeCountry: null,
             stepToken: 0,
             reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -2501,6 +2502,7 @@
             TOUR.idx = 0;
             TOUR.running = true;
             TOUR.startedAt = Date.now();
+            TOUR.auto = !!auto;
             TOUR.wasFs = false;
             TOUR.activeCountry = null;
             TOUR.onGlobe = (globeView === 'globe' && GLOBE && globeReady);
@@ -2574,12 +2576,16 @@
             resetTourIdle();
         }
 
-        function tourKeyExit() { stopTour(); }
+        function tourKeyExit(e) {
+            if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') stopTour();
+        }
         function tourPointerExit() {
             if (Date.now() - TOUR.startedAt < 700) return;
             stopTour();
         }
+        // Mouse movement only wakes the tour when it started itself (screensaver mode)
         function tourMoveExit(e) {
+            if (!TOUR.auto) return;
             if (Date.now() - TOUR.startedAt < 1600) return;
             if (Math.abs(e.movementX) + Math.abs(e.movementY) > 8) stopTour();
         }
