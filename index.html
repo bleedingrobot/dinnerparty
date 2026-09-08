@@ -803,6 +803,200 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         #loadingText { color: var(--text-dim); font-size: 0.9em; font-weight: 500; }
 
+        /* ---------- Cinema tour / screensaver ---------- */
+        .btn-cinema {
+            margin-left: auto;
+            color: #fff;
+            border: none;
+            background: var(--accent-grad);
+            background-size: 180% 100%;
+            font-weight: 600;
+            padding: 9px 16px;
+            white-space: nowrap;
+        }
+        .btn-cinema:hover {
+            box-shadow: 0 8px 24px -6px var(--riley-glow);
+            background-position: 100% 0;
+        }
+
+        .tour-stage {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 4000;
+            background: #04050a;
+            overflow: hidden;
+        }
+        .tour-stage.active { display: block; animation: fadeIn 0.45s ease; }
+        .tour-stage #tourMap {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background: #04050a;
+        }
+        .tour-stage .leaflet-container { background: #04050a; }
+        .tour-stage .leaflet-control-zoom { display: none; }
+        .tour-stage .leaflet-control-attribution {
+            background: transparent !important;
+            color: rgba(255, 255, 255, 0.22) !important;
+            box-shadow: none;
+        }
+        .tour-stage .leaflet-control-attribution a { color: rgba(255, 255, 255, 0.35) !important; }
+
+        .tour-stars {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0.16;
+            background-image:
+                radial-gradient(1px 1px at 15% 25%, #fff, transparent),
+                radial-gradient(1px 1px at 62% 68%, #fff, transparent),
+                radial-gradient(1.6px 1.6px at 82% 18%, #fff, transparent),
+                radial-gradient(1px 1px at 38% 82%, #fff, transparent),
+                radial-gradient(1px 1px at 92% 55%, #fff, transparent),
+                radial-gradient(1.4px 1.4px at 8% 58%, #fff, transparent),
+                radial-gradient(1px 1px at 48% 12%, #fff, transparent);
+            background-repeat: repeat;
+            background-size: 420px 420px;
+            animation: twinkle 7s ease-in-out infinite alternate;
+        }
+        @keyframes twinkle { to { opacity: 0.28; } }
+
+        .tour-vignette {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            background: radial-gradient(125% 125% at 50% 42%, transparent 38%, rgba(4, 5, 10, 0.5) 74%, rgba(4, 5, 10, 0.94) 100%);
+        }
+
+        .tour-dots {
+            position: absolute;
+            top: 26px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 68vw;
+            z-index: 5;
+        }
+        .tour-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.22);
+            transition: width 0.4s ease, background 0.4s ease, box-shadow 0.4s ease;
+        }
+        .tour-dot.done { background: rgba(255, 255, 255, 0.45); }
+        .tour-dot.active {
+            width: 24px;
+            background: var(--riley);
+            box-shadow: 0 0 12px var(--riley-glow);
+        }
+
+        .tour-exit {
+            position: absolute;
+            top: 22px;
+            right: 24px;
+            z-index: 6;
+            font-size: 0.72rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.55);
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--glass-brd);
+            padding: 7px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            transition: color 0.2s, background 0.2s;
+        }
+        .tour-exit:hover { color: #fff; background: rgba(0, 0, 0, 0.55); }
+
+        .tour-caption {
+            position: absolute;
+            left: 50%;
+            bottom: 7vh;
+            transform: translate(-50%, 34px);
+            width: min(700px, 88vw);
+            padding: 26px 32px;
+            z-index: 5;
+            border-radius: 20px;
+            border: 1px solid var(--glass-hi);
+            background: linear-gradient(180deg, rgba(14, 16, 26, 0.66), rgba(14, 16, 26, 0.9));
+            box-shadow: 0 34px 90px -22px rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(18px) saturate(150%);
+            -webkit-backdrop-filter: blur(18px) saturate(150%);
+            opacity: 0;
+            transition: opacity 0.85s ease, transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tour-caption.show { opacity: 1; transform: translate(-50%, 0); }
+        .tour-cap-kicker {
+            font-size: 0.74rem;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
+            color: var(--text-faint);
+            margin-bottom: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .tour-cap-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 5.2vw, 3.5rem);
+            font-weight: 700;
+            line-height: 1.02;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+        .tour-cap-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 14px;
+            margin-top: 15px;
+            font-size: 0.96rem;
+            color: var(--text-dim);
+        }
+        .tour-cap-badge {
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.74rem;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+        .tour-cap-badge.riley { background: rgba(34, 211, 238, 0.16); color: var(--riley-soft); border: 1px solid rgba(34, 211, 238, 0.4); }
+        .tour-cap-badge.murry { background: rgba(251, 191, 36, 0.16); color: var(--murry-soft); border: 1px solid rgba(251, 191, 36, 0.4); }
+        .tour-cap-notes {
+            margin-top: 15px;
+            font-size: 1.03rem;
+            line-height: 1.5;
+            color: #cfd4e2;
+            font-style: italic;
+        }
+
+        .tour-arc { stroke-dasharray: 7 9; animation: tourDash 0.9s linear infinite; }
+        @keyframes tourDash { to { stroke-dashoffset: -16; } }
+        .tour-active-riley { animation: tourPulseRiley 2.6s ease-in-out infinite; }
+        .tour-active-murry { animation: tourPulseMurry 2.6s ease-in-out infinite; }
+        @keyframes tourPulseRiley {
+            0%, 100% { filter: drop-shadow(0 0 6px var(--riley-glow)); }
+            50% { filter: drop-shadow(0 0 22px var(--riley-glow)); }
+        }
+        @keyframes tourPulseMurry {
+            0%, 100% { filter: drop-shadow(0 0 6px var(--murry-glow)); }
+            50% { filter: drop-shadow(0 0 22px var(--murry-glow)); }
+        }
+
+        @media (max-width: 560px) {
+            .tour-caption { bottom: 4vh; padding: 20px 22px; }
+            .btn-cinema { margin-left: 0; width: 100%; }
+        }
+
         /* ---------- Responsive ---------- */
         @media (max-width: 1000px) {
             .content { grid-template-columns: 1fr; }
@@ -864,6 +1058,7 @@
                         <option value="topo">Light</option>
                         <option value="satellite">Satellite</option>
                     </select>
+                    <button class="btn btn-cinema" id="tourBtn" onclick="startTour()" title="Full-screen animated tour">&#9654;&nbsp; Play tour</button>
                 </div>
                 <div class="map-wrap">
                     <div id="map"></div>
@@ -976,6 +1171,16 @@
         </div>
     </div>
 
+    <!-- Cinema tour / screensaver -->
+    <div class="tour-stage" id="tourStage">
+        <div id="tourMap"></div>
+        <div class="tour-stars"></div>
+        <div class="tour-vignette"></div>
+        <div class="tour-dots" id="tourDots"></div>
+        <div class="tour-exit" id="tourExit" onclick="stopTour()">Esc to exit</div>
+        <div class="tour-caption" id="tourCaption"></div>
+    </div>
+
     <!-- Loading overlay -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-content">
@@ -1001,6 +1206,7 @@
         let countryLayers = {};
         let allCountries = [];
         let currentTileLayer = null;
+        let geojsonData = null;
         let mapStyles = {
             osm: {
                 url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
@@ -1069,6 +1275,7 @@
                 await loadData();
                 initMap();
                 updateUI();
+                setupIdleWatch();
             } catch (error) {
                 console.error('Init error:', error);
                 alert('Error loading data. Please refresh the page.');
@@ -1243,6 +1450,7 @@
             fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
                 .then(response => response.json())
                 .then(data => {
+                    geojsonData = data;
                     L.geoJSON(data, {
                         style: function(feature) {
                             return getCountryStyle(feature.properties.name);
@@ -1707,6 +1915,334 @@
                 event.target.value = '';
             };
             reader.readAsText(file);
+        }
+
+        /* ================= CINEMA TOUR / SCREENSAVER ================= */
+        const TOUR = {
+            running: false,
+            idx: 0,
+            order: [],
+            timers: [],
+            map: null,
+            layers: {},
+            arc: null,
+            startedAt: 0,
+            wasFs: false,
+            reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        };
+        const TOUR_IDLE_MS = 180000; // auto-start after 3 minutes idle
+        let tourIdleTimer = null;
+
+        function tourClearTimers() {
+            TOUR.timers.forEach(t => clearTimeout(t));
+            TOUR.timers = [];
+        }
+
+        // Completed countries, oldest dinner first (falls back to A-Z)
+        function tourList() {
+            return Object.keys(dinnerData).sort((a, b) => {
+                const da = dinnerData[a].dateAdded || '';
+                const db = dinnerData[b].dateAdded || '';
+                if (da && db && da !== db) return da.localeCompare(db);
+                if (da && !db) return -1;
+                if (!da && db) return 1;
+                return a.localeCompare(b);
+            });
+        }
+
+        function tourCountryStyle(name, active) {
+            const dinner = dinnerData[name];
+            if (!dinner) {
+                return { fillColor: '#3a4150', fillOpacity: 0.14, color: '#2b3140', weight: 0.4 };
+            }
+            const isRiley = dinner.family === 'riley';
+            const col = isRiley ? '#22d3ee' : '#fbbf24';
+            if (active) {
+                return { fillColor: col, fillOpacity: 0.8, color: '#ffffff', weight: 2.2 };
+            }
+            return { fillColor: col, fillOpacity: 0.32, color: isRiley ? '#67e8f9' : '#fcd34d', weight: 1 };
+        }
+
+        function buildTourMap() {
+            if (TOUR.map || !geojsonData) return;
+            TOUR.map = L.map('tourMap', {
+                zoomControl: false,
+                attributionControl: true,
+                dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+                boxZoom: false, keyboard: false, touchZoom: false, tap: false,
+                zoomSnap: 0.1, worldCopyJump: true
+            }).setView([20, 0], 2);
+
+            L.tileLayer(mapStyles.osm.url, {
+                attribution: mapStyles.osm.attribution,
+                maxZoom: mapStyles.osm.maxZoom || 18
+            }).addTo(TOUR.map);
+
+            L.geoJSON(geojsonData, {
+                style: feature => tourCountryStyle(feature.properties.name, false),
+                onEachFeature: (feature, layer) => { TOUR.layers[feature.properties.name] = layer; }
+            }).addTo(TOUR.map);
+        }
+
+        // Spotlight: brighten the active country, dim the rest
+        function tourPaint(activeName) {
+            Object.keys(TOUR.layers).forEach(name => {
+                const layer = TOUR.layers[name];
+                const isActive = name === activeName;
+                layer.setStyle(tourCountryStyle(name, isActive));
+                if (layer._path) {
+                    layer._path.classList.remove('tour-active-riley', 'tour-active-murry');
+                    if (isActive && dinnerData[name]) {
+                        layer._path.classList.add(dinnerData[name].family === 'riley' ? 'tour-active-riley' : 'tour-active-murry');
+                    }
+                }
+                if (isActive) layer.bringToFront();
+            });
+        }
+
+        // Bounds of a country's largest landmass (many countries include far-flung
+        // territories that would otherwise make the camera fit the whole globe)
+        function tourCountryBounds(layer) {
+            let best = null, bestArea = -1;
+            function consider(ring) {
+                const b = L.latLngBounds(ring);
+                if (!b.isValid()) return;
+                const area = (b.getNorth() - b.getSouth()) * (b.getEast() - b.getWest());
+                if (area > bestArea) { bestArea = area; best = b; }
+            }
+            function walk(arr) {
+                if (!arr || !arr.length) return;
+                if (arr[0] instanceof L.LatLng) { consider(arr); return; }
+                arr.forEach(walk);
+            }
+            try { walk(layer.getLatLngs()); } catch (e) { /* ignore */ }
+            return best || layer.getBounds();
+        }
+
+        // Where the camera should sit for a country: centred a little below the
+        // landmass so it frames above the caption card
+        function tourTarget(layer) {
+            const b = tourCountryBounds(layer);
+            const c = b.getCenter();
+            const latSpan = Math.max(b.getNorth() - b.getSouth(), 0.5);
+            let zoom = 3;
+            try { zoom = TOUR.map.getBoundsZoom(b, false, L.point(120, 360)); } catch (e) { /* ignore */ }
+            zoom = Math.max(2.4, Math.min(zoom, 5));
+            return { center: L.latLng(c.lat - latSpan * 0.18, c.lng), zoom: zoom };
+        }
+
+        // Glowing curved arc from the previous country to the current one
+        function tourDrawArc(fromName, toName) {
+            if (TOUR.arc) { TOUR.map.removeLayer(TOUR.arc); TOUR.arc = null; }
+            const a = TOUR.layers[fromName], b = TOUR.layers[toName];
+            if (!a || !b) return;
+            const p1 = tourCountryBounds(a).getCenter();
+            const p2 = tourCountryBounds(b).getCenter();
+            const mid = L.latLng((p1.lat + p2.lat) / 2, (p1.lng + p2.lng) / 2);
+            const dx = p2.lng - p1.lng, dy = p2.lat - p1.lat;
+            const norm = Math.hypot(dx, dy) || 1;
+            const off = Math.min(norm * 0.32, 20);
+            const cp = L.latLng(mid.lat + (-dx / norm) * off, mid.lng + (dy / norm) * off);
+            const pts = [];
+            for (let t = 0; t <= 1.0001; t += 0.04) {
+                const lat = (1 - t) * (1 - t) * p1.lat + 2 * (1 - t) * t * cp.lat + t * t * p2.lat;
+                const lng = (1 - t) * (1 - t) * p1.lng + 2 * (1 - t) * t * cp.lng + t * t * p2.lng;
+                pts.push([lat, lng]);
+            }
+            TOUR.arc = L.polyline(pts, {
+                color: '#9ec1ff', weight: 2, opacity: 0.85, className: 'tour-arc'
+            }).addTo(TOUR.map);
+        }
+
+        function tourRenderDots() {
+            const wrap = document.getElementById('tourDots');
+            const n = TOUR.order.length;
+            if (wrap.children.length !== n) {
+                wrap.innerHTML = '';
+                for (let i = 0; i < n; i++) {
+                    const dot = document.createElement('span');
+                    dot.className = 'tour-dot';
+                    wrap.appendChild(dot);
+                }
+            }
+            Array.from(wrap.children).forEach((dot, i) => {
+                dot.classList.toggle('active', i === TOUR.idx);
+                dot.classList.toggle('done', i < TOUR.idx);
+            });
+        }
+
+        function tourRenderCaption(name) {
+            const d = dinnerData[name] || {};
+            const fam = d.family === 'riley' ? 'riley' : 'murry';
+            const famLabel = d.family === 'riley' ? 'Riley family' : 'Murry family';
+            let when = '';
+            if (d.dateAdded) {
+                const dt = new Date(d.dateAdded);
+                if (!isNaN(dt)) when = dt.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+            }
+            const meta = [`<span class="tour-cap-badge ${fam}">${famLabel}</span>`];
+            if (d.cuisine) meta.push(`<span>${escapeHtml(d.cuisine)}</span>`);
+            if (d.difficulty) meta.push(`<span>${escapeHtml(d.difficulty.charAt(0).toUpperCase() + d.difficulty.slice(1))}</span>`);
+            const kicker = `Dinner ${TOUR.idx + 1} of ${TOUR.order.length}` + (when ? ` &nbsp;&middot;&nbsp; ${escapeHtml(when)}` : '');
+            document.getElementById('tourCaption').innerHTML =
+                `<div class="tour-cap-kicker">${kicker}</div>` +
+                `<div class="tour-cap-name">${escapeHtml(name)}</div>` +
+                `<div class="tour-cap-meta">${meta.join('')}</div>` +
+                (d.notes ? `<div class="tour-cap-notes">&ldquo;${escapeHtml(d.notes)}&rdquo;</div>` : '');
+        }
+
+        function tourStep() {
+            if (!TOUR.running) return;
+            const name = TOUR.order[TOUR.idx];
+            const prev = TOUR.order[(TOUR.idx - 1 + TOUR.order.length) % TOUR.order.length];
+            const layer = TOUR.layers[name];
+            const cap = document.getElementById('tourCaption');
+
+            cap.classList.remove('show');
+            tourRenderDots();
+
+            const flight = TOUR.reduced ? 0.6 : 3.4;
+            const hold = TOUR.reduced ? 4 : 6.5;
+
+            let target = null;
+            if (layer) {
+                if (TOUR.order.length > 1 && prev !== name) tourDrawArc(prev, name);
+                target = tourTarget(layer);
+                try {
+                    TOUR.map.flyTo(target.center, target.zoom, { duration: flight, easeLinearity: 0.25 });
+                } catch (e) { /* ignore */ }
+            }
+            tourPaint(name);
+
+            // Reveal the caption once the camera has arrived, then slow Ken-Burns drift
+            TOUR.timers.push(setTimeout(() => {
+                if (!TOUR.running) return;
+
+                // Fallback: if the fly animation stalled, snap to the target
+                if (target && TOUR.map) {
+                    const c = TOUR.map.getCenter();
+                    const off = Math.abs(c.lat - target.center.lat) + Math.abs(c.lng - target.center.lng);
+                    if (off > 3 || Math.abs(TOUR.map.getZoom() - target.zoom) > 0.6) {
+                        try { TOUR.map.setView(target.center, target.zoom, { animate: false }); } catch (e) { /* ignore */ }
+                    }
+                }
+
+                tourRenderCaption(name);
+                cap.classList.add('show');
+
+                if (!TOUR.reduced && TOUR.map) {
+                    const c = TOUR.map.getCenter();
+                    const z = TOUR.map.getZoom();
+                    const b = TOUR.map.getBounds();
+                    const latSpan = b.getNorth() - b.getSouth();
+                    const lngSpan = b.getEast() - b.getWest();
+                    try {
+                        TOUR.map.flyTo(
+                            [c.lat + (Math.random() - 0.5) * latSpan * 0.16, c.lng + (Math.random() - 0.5) * lngSpan * 0.16],
+                            Math.min(z + 0.3, 6.5),
+                            { duration: hold, easeLinearity: 1 }
+                        );
+                    } catch (e) { /* ignore */ }
+                }
+            }, flight * 1000 + 150));
+
+            // Advance
+            TOUR.timers.push(setTimeout(() => {
+                if (!TOUR.running) return;
+                TOUR.idx = (TOUR.idx + 1) % TOUR.order.length;
+                tourStep();
+            }, (flight + hold) * 1000 + 500));
+        }
+
+        function startTour(auto) {
+            if (TOUR.running) return;
+            const list = tourList();
+            if (list.length === 0) {
+                if (!auto) alert('Add a few dinners first — then the tour will have something to show!');
+                return;
+            }
+            if (!geojsonData) {
+                if (!auto) alert('The map is still loading. Try again in a moment.');
+                return;
+            }
+
+            TOUR.order = list;
+            TOUR.idx = 0;
+            TOUR.running = true;
+            TOUR.startedAt = Date.now();
+            TOUR.wasFs = false;
+
+            const stage = document.getElementById('tourStage');
+            stage.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            buildTourMap();
+
+            if (!auto && stage.requestFullscreen) {
+                stage.requestFullscreen().catch(() => {});
+            }
+
+            TOUR.timers.push(setTimeout(() => {
+                if (!TOUR.running) return;
+                if (TOUR.map) TOUR.map.invalidateSize();
+                tourStep();
+            }, 380));
+
+            document.addEventListener('keydown', tourKeyExit, true);
+            document.addEventListener('pointerdown', tourPointerExit, true);
+            document.addEventListener('mousemove', tourMoveExit, true);
+            document.addEventListener('fullscreenchange', tourFsChange);
+        }
+
+        function stopTour() {
+            if (!TOUR.running) return;
+            TOUR.running = false;
+            tourClearTimers();
+            document.removeEventListener('keydown', tourKeyExit, true);
+            document.removeEventListener('pointerdown', tourPointerExit, true);
+            document.removeEventListener('mousemove', tourMoveExit, true);
+            document.removeEventListener('fullscreenchange', tourFsChange);
+
+            document.getElementById('tourCaption').classList.remove('show');
+            document.getElementById('tourStage').classList.remove('active');
+            document.body.style.overflow = '';
+            if (TOUR.arc && TOUR.map) { TOUR.map.removeLayer(TOUR.arc); TOUR.arc = null; }
+            if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            resetTourIdle();
+        }
+
+        function tourKeyExit() { stopTour(); }
+        function tourPointerExit() {
+            if (Date.now() - TOUR.startedAt < 700) return;
+            stopTour();
+        }
+        function tourMoveExit(e) {
+            if (Date.now() - TOUR.startedAt < 1600) return;
+            if (Math.abs(e.movementX) + Math.abs(e.movementY) > 8) stopTour();
+        }
+        function tourFsChange() {
+            if (TOUR.map) setTimeout(() => { if (TOUR.map) TOUR.map.invalidateSize(); }, 180);
+            if (TOUR.running && TOUR.wasFs && !document.fullscreenElement) {
+                stopTour();
+            }
+            TOUR.wasFs = !!document.fullscreenElement;
+        }
+
+        function resetTourIdle() {
+            clearTimeout(tourIdleTimer);
+            tourIdleTimer = setTimeout(() => {
+                if (!TOUR.running && !document.hidden && !document.getElementById('countryModal').classList.contains('active')) {
+                    startTour(true);
+                }
+            }, TOUR_IDLE_MS);
+        }
+
+        function setupIdleWatch() {
+            ['mousemove', 'keydown', 'pointerdown', 'wheel', 'touchstart'].forEach(ev => {
+                document.addEventListener(ev, () => {
+                    if (!TOUR.running) resetTourIdle();
+                }, { passive: true });
+            });
+            resetTourIdle();
         }
 
         // Delegated actions for the completed-countries list
