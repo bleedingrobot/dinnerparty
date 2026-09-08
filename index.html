@@ -659,6 +659,75 @@
             pointer-events: none;
         }
 
+        /* ---------- Dinner photos ---------- */
+        .photo-field { display: flex; flex-direction: column; gap: 10px; }
+        .photo-preview { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-brd); }
+        .photo-preview img { display: block; width: 100%; max-height: 200px; object-fit: cover; }
+        .photo-remove {
+            position: absolute; top: 8px; right: 8px;
+            width: 26px; height: 26px; border-radius: 50%;
+            border: none; cursor: pointer; font-size: 15px; line-height: 1;
+            color: #fff; background: rgba(4, 5, 10, 0.7);
+            backdrop-filter: blur(4px);
+        }
+        .photo-remove:hover { background: rgba(251, 113, 133, 0.85); }
+
+        .country-thumb {
+            width: 100%;
+            max-height: 130px;
+            object-fit: cover;
+            border-radius: 9px;
+            margin-top: 8px;
+            border: 1px solid var(--glass-brd);
+            cursor: zoom-in;
+            transition: transform 0.2s;
+        }
+        .country-thumb:hover { transform: scale(1.01); }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 6000;
+            background: rgba(4, 5, 10, 0.9);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            cursor: zoom-out;
+        }
+        .lightbox.active { display: flex; animation: fadeIn 0.2s ease; }
+        .lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 14px;
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.9);
+            animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .lightbox .lb-cap {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 7px 16px;
+            border-radius: 999px;
+            font-size: 0.9em;
+        }
+
+        .tour-cap-photo {
+            display: block;
+            width: 100%;
+            max-height: 34vh;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid var(--glass-hi);
+        }
+
         .section-title {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1.08em;
@@ -928,6 +997,8 @@
             border-radius: 20px;
             max-width: 440px;
             width: 100%;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
             box-shadow: var(--shadow-lg);
             animation: popIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -1400,6 +1471,17 @@
                         <option value="hard">Hard</option>
                     </select>
                 </div>
+                <div class="form-group" id="photoGroup" hidden>
+                    <label>Photo (optional)</label>
+                    <div class="photo-field">
+                        <input type="file" id="photoInput" accept="image/*" hidden>
+                        <button type="button" class="btn btn-secondary" id="photoPickBtn">Choose photo&hellip;</button>
+                        <div class="photo-preview" id="photoPreview" hidden>
+                            <img id="photoPreviewImg" alt="Dinner photo preview">
+                            <button type="button" class="photo-remove" id="photoRemoveBtn" title="Remove photo">&times;</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
@@ -1429,6 +1511,12 @@
     <canvas id="confettiCanvas"></canvas>
     <div id="toastHost"></div>
 
+    <!-- Photo lightbox -->
+    <div class="lightbox" id="lightbox">
+        <img id="lightboxImg" alt="Dinner photo">
+        <div class="lb-cap" id="lightboxCap"></div>
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -1439,6 +1527,19 @@
          */
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwdsunLsCgREpIKBnsMNgZHwjbxpx8opu9wn559ZqWUC-XPrDwOAK9yCQ9PXy5Q_NO9bg/exec';
         const USE_GOOGLE_SHEETS = true;
+
+        /**
+         * CLOUDINARY (dinner photos)
+         * 1. Make a free account at cloudinary.com
+         * 2. Settings -> Upload -> Upload presets -> Add: signing mode "Unsigned",
+         *    set a folder (e.g. "dinners"), allowed formats jpg,png,webp, and a
+         *    max file size. Save and copy its name.
+         * 3. Put your cloud name and the preset name below.
+         * Photos stay disabled until both are filled in.
+         */
+        const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME';
+        const CLOUDINARY_UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET';
+        const PHOTOS_ENABLED = CLOUDINARY_CLOUD_NAME !== 'YOUR_CLOUD_NAME' && CLOUDINARY_UPLOAD_PRESET !== 'YOUR_UPLOAD_PRESET';
 
         let dinnerData = {};
         let map;
@@ -1600,6 +1701,82 @@
             raf = requestAnimationFrame(frame);
             // Safety: make sure the canvas is always cleared even if rAF stalls
             setTimeout(() => { cancelAnimationFrame(raf); ctx.clearRect(0, 0, window.innerWidth, window.innerHeight); }, 3200);
+        }
+
+        // ---------- Dinner photos (Cloudinary) ----------
+        let pendingPhotoBlob = null;   // a freshly picked image, not uploaded yet
+        let pendingPhotoRemoved = false;
+
+        // Resize/compress an image file to a JPEG blob
+        function resizeImage(file, maxDim, quality) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    let w = img.naturalWidth, h = img.naturalHeight;
+                    const longest = Math.max(w, h);
+                    if (longest > maxDim) { const s = maxDim / longest; w = Math.round(w * s); h = Math.round(h * s); }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    canvas.toBlob(b => b ? resolve(b) : reject(new Error('Could not process image')), 'image/jpeg', quality || 0.82);
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('That file is not a readable image')); };
+                img.src = url;
+            });
+        }
+
+        async function uploadToCloudinary(blob) {
+            const fd = new FormData();
+            fd.append('file', blob);
+            fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
+                method: 'POST', body: fd
+            });
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok || !json.secure_url) {
+                throw new Error((json.error && json.error.message) || 'Photo upload failed');
+            }
+            return json.secure_url;
+        }
+
+        // Insert Cloudinary delivery transforms (auto format/quality + a width) into a URL
+        function photoVariant(url, transform) {
+            if (!url || url.indexOf('/upload/') === -1) return url;
+            return url.replace('/upload/', '/upload/' + transform + '/');
+        }
+        const photoThumb = url => photoVariant(url, 'c_fill,g_auto,w_400,h_260,f_auto,q_auto');
+        const photoMedium = url => photoVariant(url, 'w_1000,f_auto,q_auto');
+        const photoLarge = url => photoVariant(url, 'w_1800,f_auto,q_auto');
+
+        function openLightbox(url, caption) {
+            const lb = document.getElementById('lightbox');
+            document.getElementById('lightboxImg').src = photoLarge(url);
+            document.getElementById('lightboxCap').textContent = caption || '';
+            document.getElementById('lightboxCap').hidden = !caption;
+            lb.classList.add('active');
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.getElementById('lightboxImg').src = '';
+        }
+
+        function resetPhotoField(existingUrl) {
+            pendingPhotoBlob = null;
+            pendingPhotoRemoved = false;
+            const group = document.getElementById('photoGroup');
+            const preview = document.getElementById('photoPreview');
+            const previewImg = document.getElementById('photoPreviewImg');
+            group.hidden = !PHOTOS_ENABLED;
+            document.getElementById('photoInput').value = '';
+            if (existingUrl) {
+                previewImg.src = photoMedium(existingUrl);
+                preview.hidden = false;
+            } else {
+                previewImg.src = '';
+                preview.hidden = true;
+            }
         }
 
         // ---------- Achievements ----------
@@ -1947,6 +2124,7 @@
             document.getElementById('notes').value = dinner ? dinner.notes : '';
             document.getElementById('cuisine').value = dinner ? (dinner.cuisine || '') : '';
             document.getElementById('difficulty').value = dinner ? (dinner.difficulty || '') : '';
+            resetPhotoField(dinner ? (dinner.photo || '') : '');
 
             document.getElementById('countryModal').classList.add('active');
             document.getElementById('familyCode').focus();
@@ -1956,6 +2134,7 @@
         function closeModal() {
             document.getElementById('countryModal').classList.remove('active');
             document.getElementById('countryForm').reset();
+            resetPhotoField('');
             currentCountry = null;
         }
 
@@ -1973,16 +2152,32 @@
                 return;
             }
 
+            const isNew = !dinnerData[currentCountry];
+
+            // Resolve the photo: keep existing, clear if removed, or upload a new one
+            let photoUrl = (!isNew && dinnerData[currentCountry].photo) ? dinnerData[currentCountry].photo : '';
+            if (pendingPhotoRemoved) photoUrl = '';
+            if (pendingPhotoBlob && PHOTOS_ENABLED) {
+                showLoading('Uploading photo…');
+                try {
+                    photoUrl = await uploadToCloudinary(pendingPhotoBlob);
+                } catch (err) {
+                    hideLoading();
+                    alert(err.message || 'Photo upload failed. Try a smaller image.');
+                    return;
+                }
+            }
+
             showLoading('Saving...');
 
             try {
-                const isNew = !dinnerData[currentCountry];
                 if (isNew) {
                     dinnerData[currentCountry] = {
                         family: familyCode,
                         notes: notes,
                         cuisine: cuisine,
                         difficulty: difficulty,
+                        photo: photoUrl,
                         dateAdded: new Date().toISOString()
                     };
                 } else {
@@ -1990,6 +2185,7 @@
                     dinnerData[currentCountry].notes = notes;
                     dinnerData[currentCountry].cuisine = cuisine;
                     dinnerData[currentCountry].difficulty = difficulty;
+                    dinnerData[currentCountry].photo = photoUrl;
                 }
 
                 await saveDataToSheets(currentCountry, dinnerData[currentCountry]);
@@ -2136,6 +2332,10 @@
                         }
                     }
 
+                    const photoHtml = dinner.photo
+                        ? `<img class="country-thumb" loading="lazy" alt="Photo from ${escapeHtml(countryName)}" src="${escapeHtml(photoThumb(dinner.photo))}" data-full="${escapeHtml(dinner.photo)}" data-cap="${escapeHtml(countryName)}">`
+                        : '';
+
                     li.innerHTML = `
                         <div class="country-info">
                             <div class="country-name">${escapeHtml(countryName)}</div>
@@ -2144,6 +2344,7 @@
                             ${detailsHtml}
                             ${wikiHtml}
                             ${dateHtml}
+                            ${photoHtml}
                         </div>
                         <div class="country-actions">
                             <button class="btn btn-zoom" data-act="zoom" data-country="${escapeHtml(countryName)}">Zoom</button>
@@ -2787,6 +2988,7 @@
             if (d.difficulty) meta.push(`<span>${escapeHtml(d.difficulty.charAt(0).toUpperCase() + d.difficulty.slice(1))}</span>`);
             const kicker = `Dinner ${TOUR.idx + 1} of ${TOUR.order.length}` + (when ? ` &nbsp;&middot;&nbsp; ${escapeHtml(when)}` : '');
             document.getElementById('tourCaption').innerHTML =
+                (d.photo ? `<img class="tour-cap-photo" src="${escapeHtml(photoMedium(d.photo))}" alt="">` : '') +
                 `<div class="tour-cap-kicker">${kicker}</div>` +
                 `<div class="tour-cap-name">${escapeHtml(name)}</div>` +
                 `<div class="tour-cap-meta">${meta.join('')}</div>` +
@@ -3029,6 +3231,8 @@
 
         // Delegated actions for the completed-countries list
         document.getElementById('completedList').addEventListener('click', function(e) {
+            const thumb = e.target.closest('.country-thumb');
+            if (thumb) { openLightbox(thumb.dataset.full, thumb.dataset.cap); return; }
             const btn = e.target.closest('button[data-act]');
             if (!btn) return;
             const country = btn.dataset.country;
@@ -3037,6 +3241,35 @@
             else if (btn.dataset.act === 'delete') deleteCountry(country);
         });
 
+        // ---------- Photo picker + lightbox wiring ----------
+        document.getElementById('photoPickBtn').addEventListener('click', () => {
+            document.getElementById('photoInput').click();
+        });
+        document.getElementById('photoInput').addEventListener('change', async function(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            try {
+                showLoading('Processing photo…');
+                pendingPhotoBlob = await resizeImage(file, 1800, 0.82);
+                pendingPhotoRemoved = false;
+                const preview = document.getElementById('photoPreview');
+                document.getElementById('photoPreviewImg').src = URL.createObjectURL(pendingPhotoBlob);
+                preview.hidden = false;
+            } catch (err) {
+                alert(err.message || 'Could not read that image.');
+            } finally {
+                hideLoading();
+            }
+        });
+        document.getElementById('photoRemoveBtn').addEventListener('click', () => {
+            pendingPhotoBlob = null;
+            pendingPhotoRemoved = true;
+            document.getElementById('photoInput').value = '';
+            document.getElementById('photoPreview').hidden = true;
+            document.getElementById('photoPreviewImg').src = '';
+        });
+        document.getElementById('lightbox').addEventListener('click', closeLightbox);
+
         // Close modal when clicking outside
         document.getElementById('countryModal').addEventListener('click', function(e) {
             if (e.target === this) {
@@ -3044,9 +3277,11 @@
             }
         });
 
-        // Close modal on Escape
+        // Close modal / lightbox on Escape
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeModal();
+            if (e.key !== 'Escape') return;
+            if (document.getElementById('lightbox').classList.contains('active')) { closeLightbox(); return; }
+            closeModal();
         });
 
         // Initialize app when page loads

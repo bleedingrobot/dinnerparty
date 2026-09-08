@@ -16,8 +16,11 @@
  * 
  * SHEET STRUCTURE:
  * The script expects these columns in your sheet (will auto-create if needed):
- * A: Country | B: Family | C: Notes | D: Cuisine | E: Difficulty | F: DateAdded
+ * A: Country | B: Family | C: Notes | D: Cuisine | E: Difficulty | F: DateAdded | G: Photo
  */
+
+// Number of data columns the script reads/writes
+var COLS = 7;
 
 // Your Google Sheet ID (from the URL)
 const SHEET_ID = '1n9dmKtioZurbXMqh_WWyybrOj4GqHue6BM2SxB09Qfc';
@@ -114,13 +117,17 @@ function getSheet() {
   // Create sheet if it doesn't exist
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
-    // Add headers
-    sheet.getRange(1, 1, 1, 6).setValues([
-      ['Country', 'Family', 'Notes', 'Cuisine', 'Difficulty', 'DateAdded']
+    sheet.getRange(1, 1, 1, COLS).setValues([
+      ['Country', 'Family', 'Notes', 'Cuisine', 'Difficulty', 'DateAdded', 'Photo']
     ]);
-    sheet.getRange(1, 1, 1, 6).setFontWeight('bold');
+    sheet.getRange(1, 1, 1, COLS).setFontWeight('bold');
   }
-  
+
+  // Make sure the Photo header exists on older sheets
+  if (sheet.getRange(1, COLS).getValue() !== 'Photo') {
+    sheet.getRange(1, COLS).setValue('Photo').setFontWeight('bold');
+  }
+
   return sheet;
 }
 
@@ -135,9 +142,9 @@ function getAllData() {
     return {}; // No data, just headers
   }
   
-  const data = sheet.getRange(2, 1, lastRow - 1, 6).getValues();
+  const data = sheet.getRange(2, 1, lastRow - 1, COLS).getValues();
   const result = {};
-  
+
   data.forEach(row => {
     const country = row[0];
     if (country) {
@@ -146,11 +153,12 @@ function getAllData() {
         notes: row[2] || '',
         cuisine: row[3] || '',
         difficulty: row[4] || '',
-        dateAdded: row[5] ? new Date(row[5]).toISOString() : ''
+        dateAdded: row[5] ? new Date(row[5]).toISOString() : '',
+        photo: row[6] || ''
       };
     }
   });
-  
+
   return result;
 }
 
@@ -172,7 +180,7 @@ function saveCountry(country, data) {
       }
     }
   }
-  
+
   // Prepare data
   const rowData = [
     country,
@@ -180,17 +188,18 @@ function saveCountry(country, data) {
     data.notes || '',
     data.cuisine || '',
     data.difficulty || '',
-    data.dateAdded ? new Date(data.dateAdded) : new Date()
+    data.dateAdded ? new Date(data.dateAdded) : new Date(),
+    data.photo || ''
   ];
-  
+
   if (rowIndex > -1) {
     // Update existing row
-    sheet.getRange(rowIndex, 1, 1, 6).setValues([rowData]);
+    sheet.getRange(rowIndex, 1, 1, COLS).setValues([rowData]);
   } else {
     // Add new row
     sheet.appendRow(rowData);
   }
-  
+
   return { country: country, action: 'saved' };
 }
 

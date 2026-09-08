@@ -116,3 +116,37 @@ If you need to make changes:
 4. Change **Version** to "New version"
 5. Click **Deploy**
 6. The URL stays the same, so no changes needed to your website!
+
+## Dinner Photos (Cloudinary)
+
+Photos are uploaded straight from the browser to Cloudinary (free tier) and
+only the image URL is stored in the sheet.
+
+### 1. Cloudinary
+
+1. Sign up at [cloudinary.com](https://cloudinary.com) (free)
+2. **Settings → Upload → Upload presets → Add upload preset**
+   - **Signing Mode:** Unsigned
+   - **Folder:** `dinners` (keeps uploads tidy)
+   - Under **Upload manipulations**, optionally add an incoming transformation
+     like `c_limit,w_2000` and restrict **Allowed formats** to `jpg,png,webp`
+   - Save and copy the **preset name**
+3. Your **cloud name** is shown on the dashboard
+4. In `index.html`, set:
+   ```javascript
+   const CLOUDINARY_CLOUD_NAME = 'your-cloud-name';
+   const CLOUDINARY_UPLOAD_PRESET = 'your-preset-name';
+   ```
+   The photo field stays hidden until both are filled in.
+
+### 2. Add the Photo column to the script
+
+`google-apps-script.js` now writes a 7th column, **Photo**. Paste the updated
+script into the Apps Script editor and **Deploy → Manage deployments → edit →
+New version** (URL stays the same). The `Photo` header is added automatically
+on the next save.
+
+**Note:** unsigned uploads mean anyone with the site could upload to your
+Cloudinary account. The free tier is generous, and the folder + format + size
+limits on the preset keep it contained — tighten or rotate the preset if it is
+ever abused.
