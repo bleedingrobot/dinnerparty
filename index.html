@@ -598,10 +598,33 @@
             border: 1px solid var(--glass-brd);
             background: var(--glass-bg);
             color: var(--text-faint);
-            cursor: default;
-            transition: transform 0.2s;
+            cursor: help;
+            transition: transform 0.2s, border-color 0.2s;
         }
+        .badge:hover, .badge:focus-visible { transform: translateY(-1px); outline: none; }
+        .badge:focus-visible { border-color: var(--riley); }
         .badge .b-ico { font-size: 1.15em; filter: grayscale(1) opacity(0.55); }
+
+        #badgeTip {
+            position: fixed;
+            z-index: 5800;
+            max-width: 240px;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            line-height: 1.4;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--glass-bg-strong);
+            border: 1px solid var(--glass-hi);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(14px);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        #badgeTip.show { opacity: 1; transform: translateY(0); }
         .badge.unlocked {
             color: var(--text);
             border-color: rgba(34, 211, 238, 0.35);
@@ -1673,6 +1696,7 @@
 
     <canvas id="confettiCanvas"></canvas>
     <div id="toastHost"></div>
+    <div id="badgeTip" role="tooltip"></div>
 
     <!-- Photo lightbox -->
     <div class="lightbox" id="lightbox">
@@ -2092,18 +2116,34 @@
         }
 
         // ---------- Achievements ----------
+        const ISLAND_NATIONS = ('Japan|United Kingdom|Ireland|Iceland|New Zealand|Fiji|Cuba|Jamaica|Haiti|Dominican Republic|' +
+            'Sri Lanka|Madagascar|Taiwan|Cyprus|Malta|Trinidad and Tobago|The Bahamas|Solomon Islands|Vanuatu|New Caledonia|' +
+            'Indonesia|Philippines|Papua New Guinea|Brunei').split('|');
+
         const ACHIEVEMENTS = [
-            { id: 'first', ico: '🍽️', label: 'First dinner', test: s => s.total >= 1 },
-            { id: 'five', ico: '⭐', label: '5 dinners', test: s => s.total >= 5 },
-            { id: 'ten', ico: '🔥', label: '10 dinners', test: s => s.total >= 10 },
-            { id: 'twentyfive', ico: '👑', label: '25 dinners', test: s => s.total >= 25 },
-            { id: 'fifty', ico: '🏆', label: '50 dinners', test: s => s.total >= 50 },
-            { id: 'continent', ico: '🗺️', label: 'Continent complete', test: s => s.fullContinents.length >= 1,
-              detail: s => s.fullContinents[0] },
-            { id: 'globetrotter', ico: '🌍', label: 'Globetrotter', test: s => s.touchedContinents >= 6 },
-            { id: 'balanced', ico: '⚖️', label: 'Perfectly balanced', test: s => s.total >= 6 && s.riley === s.murry },
-            { id: 'teamwork', ico: '🤝', label: 'Teamwork', test: s => s.sharedContinents >= 1 },
-            { id: 'daredevils', ico: '🌶️', label: 'Daredevils', test: s => s.hard >= 3 }
+            { id: 'first', ico: '🍽️', label: 'First dinner', desc: 'Log your very first themed dinner.', test: s => s.total >= 1 },
+            { id: 'five', ico: '🖐️', label: 'Five down', desc: 'Reach 5 dinners.', test: s => s.total >= 5 },
+            { id: 'ten', ico: '🔟', label: 'Double figures', desc: 'Reach 10 dinners.', test: s => s.total >= 10 },
+            { id: 'twentyfive', ico: '🎖️', label: 'Quarter century', desc: 'Reach 25 dinners.', test: s => s.total >= 25 },
+            { id: 'fifty', ico: '🏆', label: 'Half a hundred', desc: 'Reach 50 dinners.', test: s => s.total >= 50 },
+            { id: 'century', ico: '💯', label: 'Century', desc: 'Reach 100 dinners. Serious dedication.', test: s => s.total >= 100 },
+            { id: 'halfway', ico: '🌗', label: 'Halfway round the world', desc: 'Dine in half of the world’s ~195 countries.', test: s => s.total >= 98 },
+            { id: 'continent', ico: '🗺️', label: 'Continent complete', desc: 'Cook a dinner from every country on one whole continent.', test: s => s.fullContinents.length >= 1, detail: s => s.fullContinents[0] },
+            { id: 'sweep', ico: '🌐', label: 'Continental sweep', desc: 'Finish three entire continents.', test: s => s.fullContinents.length >= 3 },
+            { id: 'globetrotter', ico: '✈️', label: 'Globetrotter', desc: 'A dinner on every continent (Antarctica optional).', test: s => s.touchedContinents >= 6 },
+            { id: 'antarctica', ico: '🐧', label: 'Cold open', desc: 'Somehow, a dinner representing Antarctica.', test: s => s.hasAntarctica },
+            { id: 'teamwork', ico: '🤝', label: 'Teamwork', desc: 'Both families cook a dinner in the same continent.', test: s => s.sharedContinents >= 1 },
+            { id: 'balanced', ico: '⚖️', label: 'Perfectly balanced', desc: '6 or more dinners with the family scores dead level.', test: s => s.total >= 6 && s.riley === s.murry },
+            { id: 'runaway', ico: '🏃', label: 'Runaway leader', desc: 'One family gets 5 dinners ahead of the other.', test: s => Math.abs(s.riley - s.murry) >= 5 },
+            { id: 'daredevils', ico: '🌶️', label: 'Daredevils', desc: 'Three dinners rated Hard.', test: s => s.hard >= 3 },
+            { id: 'comfort', ico: '🛋️', label: 'Comfort food', desc: 'Five dinners rated Easy.', test: s => s.easy >= 5 },
+            { id: 'photographer', ico: '📸', label: 'Say cheese', desc: 'Add photos to 5 different dinners.', test: s => s.withPhotos >= 5 },
+            { id: 'critic', ico: '✍️', label: 'Food critic', desc: 'Write notes on 10 dinners.', test: s => s.withNotes >= 10 },
+            { id: 'meltingpot', ico: '🥘', label: 'Melting pot', desc: 'Cover 8 different cuisine types.', test: s => s.distinctCuisines >= 8 },
+            { id: 'hattrick', ico: '🎩', label: 'Hat-trick', desc: 'Three dinners of the same cuisine type.', test: s => s.maxSameCuisine >= 3 },
+            { id: 'islandhop', ico: '🏝️', label: 'Island hopper', desc: 'Five island nations.', test: s => s.islands >= 5 },
+            { id: 'marathon', ico: '📅', label: 'Marathon month', desc: 'Four dinners dated in the same calendar month.', test: s => s.maxMonth >= 4 },
+            { id: 'streak', ico: '🔗', label: 'On a roll', desc: 'Dinners dated in three consecutive months.', test: s => s.monthStreak >= 3 }
         ];
 
         function computeStats() {
@@ -2111,18 +2151,56 @@
             const riley = names.filter(n => dinnerData[n].family === 'riley').length;
             const perContinent = {};
             CONTINENT_ORDER.forEach(c => { perContinent[c] = { done: 0, riley: 0, murry: 0, total: (CONTINENTS[c] || '').split('|').filter(Boolean).length }; });
+            const cuisines = {};
+            const months = {};
+            let easy = 0, hard = 0, withPhotos = 0, withNotes = 0, islands = 0, hasAntarctica = false;
+
             names.forEach(n => {
+                const d = dinnerData[n];
                 const c = COUNTRY_CONTINENT[n];
-                if (!c || !perContinent[c]) return;
-                perContinent[c].done++;
-                perContinent[c][dinnerData[n].family === 'riley' ? 'riley' : 'murry']++;
+                if (c && perContinent[c]) {
+                    perContinent[c].done++;
+                    perContinent[c][d.family === 'riley' ? 'riley' : 'murry']++;
+                    if (c === 'Antarctica') hasAntarctica = true;
+                }
+                if (d.difficulty === 'easy') easy++;
+                if (d.difficulty === 'hard') hard++;
+                if (d.photos && d.photos.length) withPhotos++;
+                if (d.notes && d.notes.trim()) withNotes++;
+                if (ISLAND_NATIONS.indexOf(n) !== -1) islands++;
+                if (d.cuisine && d.cuisine.trim()) {
+                    const key = d.cuisine.trim().toLowerCase();
+                    cuisines[key] = (cuisines[key] || 0) + 1;
+                }
+                // month achievements use the *real* dinner date only, not the logged-on fallback
+                if (d.date && d.date.length >= 7) { const m = d.date.slice(0, 7); months[m] = (months[m] || 0) + 1; }
             });
+
+            const cuisineCounts = Object.keys(cuisines).map(k => cuisines[k]);
+            const monthKeys = Object.keys(months).sort();
+            let monthStreak = monthKeys.length ? 1 : 0, run = monthKeys.length ? 1 : 0;
+            for (let i = 1; i < monthKeys.length; i++) {
+                const [py, pm] = monthKeys[i - 1].split('-').map(Number);
+                const [cy, cm] = monthKeys[i].split('-').map(Number);
+                run = (cy * 12 + cm) - (py * 12 + pm) === 1 ? run + 1 : 1;
+                if (run > monthStreak) monthStreak = run;
+            }
+
             const real = CONTINENT_ORDER.filter(c => c !== 'Antarctica');
             return {
                 total: names.length,
                 riley: riley,
                 murry: names.length - riley,
-                hard: names.filter(n => dinnerData[n].difficulty === 'hard').length,
+                easy: easy,
+                hard: hard,
+                withPhotos: withPhotos,
+                withNotes: withNotes,
+                islands: islands,
+                hasAntarctica: hasAntarctica,
+                distinctCuisines: cuisineCounts.length,
+                maxSameCuisine: cuisineCounts.length ? Math.max.apply(null, cuisineCounts) : 0,
+                maxMonth: monthKeys.length ? Math.max.apply(null, monthKeys.map(k => months[k])) : 0,
+                monthStreak: monthStreak,
                 perContinent: perContinent,
                 touchedContinents: real.filter(c => perContinent[c].done > 0).length,
                 fullContinents: real.filter(c => perContinent[c].total > 0 && perContinent[c].done === perContinent[c].total),
@@ -3000,11 +3078,11 @@
             wrap.innerHTML = ACHIEVEMENTS.map(a => {
                 const on = unlocked.indexOf(a) !== -1;
                 const isFresh = fresh.indexOf(a) !== -1;
-                let label = a.label;
-                if (on && a.detail) { const d = a.detail(s); if (d) label += ': ' + d; }
-                return '<span class="badge' + (on ? ' unlocked' : '') + (isFresh ? ' pop' : '') + '" title="' +
-                    escapeHtml(on ? label : 'Locked — ' + a.label) + '">' +
-                    '<span class="b-ico">' + a.ico + '</span>' + escapeHtml(on ? a.label : a.label) + '</span>';
+                let tip = (on ? '' : '🔒 ') + a.label + ' — ' + a.desc;
+                if (on && a.detail) { const d = a.detail(s); if (d) tip += ' (' + d + ')'; }
+                return '<span class="badge' + (on ? ' unlocked' : '') + (isFresh ? ' pop' : '') +
+                    '" tabindex="0" data-tip="' + escapeHtml(tip) + '">' +
+                    '<span class="b-ico">' + a.ico + '</span>' + escapeHtml(a.label) + '</span>';
             }).join('');
 
             if (fresh.length && seen.length >= 0) {
@@ -3861,6 +3939,42 @@
                 closeModal();
             }
         });
+
+        // ---------- Achievement tooltips ----------
+        (function () {
+            const tip = document.getElementById('badgeTip');
+            const wrap = document.getElementById('achievements');
+            let hideTimer = null;
+
+            function place(badge) {
+                tip.textContent = badge.dataset.tip || '';
+                tip.classList.add('show');
+                const b = badge.getBoundingClientRect();
+                const t = tip.getBoundingClientRect();
+                let left = b.left + b.width / 2 - t.width / 2;
+                left = Math.max(10, Math.min(left, window.innerWidth - t.width - 10));
+                let top = b.top - t.height - 8;
+                if (top < 10) top = b.bottom + 8;   // flip below if no room above
+                tip.style.left = left + 'px';
+                tip.style.top = top + 'px';
+            }
+            function show(badge) { clearTimeout(hideTimer); place(badge); }
+            function hide() { hideTimer = setTimeout(() => tip.classList.remove('show'), 60); }
+
+            wrap.addEventListener('mouseover', e => { const b = e.target.closest('.badge'); if (b) show(b); });
+            wrap.addEventListener('mouseout', e => { if (e.target.closest('.badge')) hide(); });
+            wrap.addEventListener('focusin', e => { const b = e.target.closest('.badge'); if (b) show(b); });
+            wrap.addEventListener('focusout', hide);
+            // Touch: tap a badge to reveal its tip for a few seconds
+            wrap.addEventListener('click', e => {
+                const b = e.target.closest('.badge');
+                if (!b) return;
+                show(b);
+                clearTimeout(hideTimer);
+                hideTimer = setTimeout(() => tip.classList.remove('show'), 3500);
+            });
+            window.addEventListener('scroll', () => tip.classList.remove('show'), true);
+        })();
 
         // Share card modal close
         document.getElementById('shareClose').addEventListener('click', closeShareCard);
