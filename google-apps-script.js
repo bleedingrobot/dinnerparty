@@ -16,11 +16,23 @@
  * 
  * SHEET STRUCTURE:
  * The script expects these columns in your sheet (will auto-create if needed):
- * A: Country | B: Family | C: Notes | D: Cuisine | E: Difficulty | F: DateAdded | G: Photo
+ * A: Country | B: Family | C: Notes | D: Cuisine | E: Difficulty | F: DateAdded
+ * G: Photos (pipe-separated URLs) | H: Date (the actual dinner date)
  */
 
 // Number of data columns the script reads/writes
-var COLS = 7;
+var COLS = 8;
+var HEADERS = ['Country', 'Family', 'Notes', 'Cuisine', 'Difficulty', 'DateAdded', 'Photos', 'Date'];
+
+// Normalise a cell that may hold a Date object or a string to "yyyy-MM-dd"
+function toDateString(v) {
+  if (!v) return '';
+  if (Object.prototype.toString.call(v) === '[object Date]') {
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return v.getFullYear() + '-' + p(v.getMonth() + 1) + '-' + p(v.getDate());
+  }
+  return String(v).trim();
+}
 
 // Your Google Sheet ID (from the URL)
 const SHEET_ID = '1n9dmKtioZurbXMqh_WWyybrOj4GqHue6BM2SxB09Qfc';
@@ -117,15 +129,15 @@ function getSheet() {
   // Create sheet if it doesn't exist
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
-    sheet.getRange(1, 1, 1, COLS).setValues([
-      ['Country', 'Family', 'Notes', 'Cuisine', 'Difficulty', 'DateAdded', 'Photo']
-    ]);
+    sheet.getRange(1, 1, 1, COLS).setValues([HEADERS]);
     sheet.getRange(1, 1, 1, COLS).setFontWeight('bold');
   }
 
-  // Make sure the Photo header exists on older sheets
-  if (sheet.getRange(1, COLS).getValue() !== 'Photo') {
-    sheet.getRange(1, COLS).setValue('Photo').setFontWeight('bold');
+  // Make sure every header exists (fills in new columns on older sheets)
+  for (var c = 0; c < HEADERS.length; c++) {
+    if (sheet.getRange(1, c + 1).getValue() !== HEADERS[c]) {
+      sheet.getRange(1, c + 1).setValue(HEADERS[c]).setFontWeight('bold');
+    }
   }
 
   return sheet;
@@ -148,13 +160,18 @@ function getAllData() {
   data.forEach(row => {
     const country = row[0];
     if (country) {
+      var photos = row[6]
+        ? String(row[6]).split('|').map(function (s) { return s.trim(); }).filter(Boolean)
+        : [];
       result[country] = {
         family: row[1] || '',
         notes: row[2] || '',
         cuisine: row[3] || '',
         difficulty: row[4] || '',
         dateAdded: row[5] ? new Date(row[5]).toISOString() : '',
-        photo: row[6] || ''
+        photos: photos,
+        photo: photos[0] || '',       // kept for older clients
+        date: toDateString(row[7])
       };
     }
   });
@@ -182,6 +199,10 @@ function saveCountry(country, data) {
   }
 
   // Prepare data
+  var photos = Array.isArray(data.photos)
+    ? data.photos.filter(Boolean).join('|')
+    : (data.photos || data.photo || '');
+  var dateStr = toDateString(data.date);
   const rowData = [
     country,
     data.family || '',
@@ -189,7 +210,8 @@ function saveCountry(country, data) {
     data.cuisine || '',
     data.difficulty || '',
     data.dateAdded ? new Date(data.dateAdded) : new Date(),
-    data.photo || ''
+    photos,
+    dateStr ? "'" + dateStr : ''   // leading apostrophe keeps Sheets from re-parsing it as a date
   ];
 
   if (rowIndex > -1) {
