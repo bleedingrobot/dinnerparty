@@ -2116,9 +2116,15 @@
         }
 
         // ---------- Achievements ----------
-        const ISLAND_NATIONS = ('Japan|United Kingdom|Ireland|Iceland|New Zealand|Fiji|Cuba|Jamaica|Haiti|Dominican Republic|' +
-            'Sri Lanka|Madagascar|Taiwan|Cyprus|Malta|Trinidad and Tobago|The Bahamas|Solomon Islands|Vanuatu|New Caledonia|' +
-            'Indonesia|Philippines|Papua New Guinea|Brunei').split('|');
+        // Island / archipelago nations. Some are too small to appear on the map but
+        // could arrive via an imported backup, so they are included anyway.
+        const ISLAND_NATIONS = new Set(('Japan|United Kingdom|Ireland|Iceland|New Zealand|Fiji|Cuba|Jamaica|Haiti|' +
+            'Dominican Republic|Sri Lanka|Madagascar|Taiwan|Cyprus|Northern Cyprus|Malta|Trinidad and Tobago|The Bahamas|' +
+            'Solomon Islands|Vanuatu|New Caledonia|Indonesia|Philippines|Papua New Guinea|Brunei|East Timor|' +
+            'Seychelles|Mauritius|Maldives|Comoros|Cabo Verde|Cape Verde|Sao Tome and Principe|' +
+            'Bahrain|Singapore|Barbados|Saint Lucia|Grenada|Antigua and Barbuda|Dominica|Saint Kitts and Nevis|' +
+            'Saint Vincent and the Grenadines|Palau|Nauru|Tuvalu|Kiribati|Marshall Islands|' +
+            'Federated States of Micronesia|Micronesia|Samoa|Tonga').split('|'));
 
         const ACHIEVEMENTS = [
             { id: 'first', ico: '🍽️', label: 'First dinner', desc: 'Log your very first themed dinner.', test: s => s.total >= 1 },
@@ -2167,7 +2173,7 @@
                 if (d.difficulty === 'hard') hard++;
                 if (d.photos && d.photos.length) withPhotos++;
                 if (d.notes && d.notes.trim()) withNotes++;
-                if (ISLAND_NATIONS.indexOf(n) !== -1) islands++;
+                if (ISLAND_NATIONS.has(n)) islands++;
                 if (d.cuisine && d.cuisine.trim()) {
                     const key = d.cuisine.trim().toLowerCase();
                     cuisines[key] = (cuisines[key] || 0) + 1;
