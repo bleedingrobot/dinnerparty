@@ -79,7 +79,7 @@ The script will create a sheet named "DinnerData" with these columns:
 | Country | Family | Notes | Cuisine | Difficulty | DateAdded |
 |---------|--------|-------|---------|------------|-----------|
 | Italy | riley | Made pasta | Italian | easy | 2026-02-04 |
-| Japan | murry | Sushi night | Asian | medium | 2026-02-03 |
+| Japan | murray | Sushi night | Asian | medium | 2026-02-03 |
 
 ## Troubleshooting
 

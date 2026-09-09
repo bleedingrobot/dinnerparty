@@ -1,12 +1,12 @@
 # 🌍 World Dinner Map Tracker
 
-A simple static website for tracking themed dinners from countries around the world, hosted by Riley and Murry families.
+A simple static website for tracking themed dinners from countries around the world, hosted by Riley and Murray families.
 
 ## ✨ Features
 
 - **Interactive World Map** - Click any country to add/edit dinner entries
 - **Family Tracking** - Simple code system to track which family hosted each dinner
-- **Color-Coded Countries** - Blue for Riley, Orange for Murry
+- **Color-Coded Countries** - Blue for Riley, Orange for Murray
 - **Persistent Storage** - All data saved in browser's localStorage
 - **Add/Edit/Delete** - Full CRUD operations for dinner entries
 - **Statistics Dashboard** - See counts for each family
@@ -19,7 +19,7 @@ A simple static website for tracking themed dinners from countries around the wo
 2. **Click a country** on the map to add a dinner entry
 3. **Enter family code**:
    - Type `riley` for Riley family
-   - Type `murry` for Murry family
+   - Type `murray` for Murray family
 4. **Add notes** (optional) - Details about the dish, date, theme, etc.
 5. **Save** - Your data is automatically saved in your browser
 
@@ -73,7 +73,7 @@ All dinner data is stored locally in your browser's `localStorage` under the key
     "notes": "Made authentic carbonara, March 2024"
   },
   "Japan": {
-    "family": "murry",
+    "family": "murray",
     "notes": "Sushi night, April 2024"
   }
 }
@@ -101,11 +101,11 @@ You can easily customize the website by editing `index.html`:
 ### Change Colors
 Look for these CSS variables in the `<style>` section:
 - Riley color: `#1976d2` (blue)
-- Murry color: `#f57c00` (orange)
+- Murray color: `#f57c00` (orange)
 - Gradient: `#667eea` to `#764ba2` (purple gradient)
 
 ### Change Family Names
-Search for "Riley" and "Murry" in the HTML and replace with your family names.
+Search for "Riley" and "Murray" in the HTML and replace with your family names.
 
 ### Add More Families
 Modify the JavaScript validation in the `saveCountry()` function to accept more codes.

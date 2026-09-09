@@ -33,9 +33,9 @@
             --riley: #22d3ee;
             --riley-soft: #67e8f9;
             --riley-glow: rgba(34, 211, 238, 0.55);
-            --murry: #fbbf24;
-            --murry-soft: #fcd34d;
-            --murry-glow: rgba(251, 191, 36, 0.5);
+            --murray: #fbbf24;
+            --murray-soft: #fcd34d;
+            --murray-glow: rgba(251, 191, 36, 0.5);
             --accent-grad: linear-gradient(120deg, #22d3ee 0%, #6366f1 55%, #a855f7 100%);
             --shadow-lg: 0 40px 90px -30px rgba(0, 0, 0, 0.75);
             --shadow-card: 0 10px 34px -14px rgba(0, 0, 0, 0.6);
@@ -60,9 +60,9 @@
             --riley: #0891b2;
             --riley-soft: #0e7490;
             --riley-glow: rgba(8, 145, 178, 0.4);
-            --murry: #d97706;
-            --murry-soft: #b45309;
-            --murry-glow: rgba(217, 119, 6, 0.35);
+            --murray: #d97706;
+            --murray-soft: #b45309;
+            --murray-glow: rgba(217, 119, 6, 0.35);
             --shadow-lg: 0 40px 90px -30px rgba(30, 41, 90, 0.35);
             --shadow-card: 0 12px 30px -16px rgba(30, 41, 90, 0.3);
         }
@@ -206,7 +206,7 @@
             padding: 1px 4px;
         }
         .subtitle .riley { color: var(--riley-soft); }
-        .subtitle .murry { color: var(--murry-soft); }
+        .subtitle .murray { color: var(--murray-soft); }
 
         /* ---------- Layout ---------- */
         .content {
@@ -359,7 +359,7 @@
         /* Country glow on the map */
         .country-glow { transition: filter 0.3s ease; }
         .country-riley { filter: drop-shadow(0 0 5px var(--riley-glow)); }
-        .country-murry { filter: drop-shadow(0 0 5px var(--murry-glow)); }
+        .country-murray { filter: drop-shadow(0 0 5px var(--murray-glow)); }
 
         /* ---------- Sidebar ---------- */
         .sidebar {
@@ -410,7 +410,7 @@
             box-shadow: var(--shadow-card);
         }
         #card-riley::before { background: linear-gradient(90deg, transparent, var(--riley)); }
-        #card-murry::before { background: linear-gradient(90deg, var(--murry), transparent); }
+        #card-murray::before { background: linear-gradient(90deg, var(--murray), transparent); }
 
         .stat-number {
             font-family: 'Space Grotesk', sans-serif;
@@ -428,7 +428,7 @@
             -webkit-text-fill-color: transparent;
         }
         #rileyCount { background: linear-gradient(180deg, var(--riley-soft), var(--riley)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-        #murryCount { background: linear-gradient(180deg, var(--murry-soft), var(--murry)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        #murrayCount { background: linear-gradient(180deg, var(--murray-soft), var(--murray)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
         .stat-label {
             font-size: 0.74em;
@@ -506,9 +506,9 @@
             width: 12px; height: 12px; border-radius: 50%;
         }
         .legend-dot.riley { background: var(--riley); box-shadow: 0 0 10px var(--riley-glow); }
-        .legend-dot.murry { background: var(--murry); box-shadow: 0 0 10px var(--murry-glow); }
+        .legend-dot.murray { background: var(--murray); box-shadow: 0 0 10px var(--murray-glow); }
 
-        /* ---------- Riley vs Murry tug-of-war ---------- */
+        /* ---------- Riley vs Murray tug-of-war ---------- */
         .tug {
             background: var(--glass-bg);
             border: 1px solid var(--glass-brd);
@@ -525,7 +525,7 @@
             margin-bottom: 9px;
         }
         .tug-head .r { color: var(--riley-soft); }
-        .tug-head .m { color: var(--murry-soft); }
+        .tug-head .m { color: var(--murray-soft); }
         .tug-track {
             position: relative;
             height: 16px;
@@ -537,7 +537,7 @@
         body.light-mode .tug-track { background: rgba(15, 23, 42, 0.08); }
         .tug-r, .tug-m { height: 100%; transition: width 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
         .tug-r { background: linear-gradient(90deg, var(--riley), rgba(34, 211, 238, 0.55)); box-shadow: 0 0 16px -2px var(--riley-glow); }
-        .tug-m { background: linear-gradient(90deg, rgba(251, 191, 36, 0.55), var(--murry)); box-shadow: 0 0 16px -2px var(--murry-glow); }
+        .tug-m { background: linear-gradient(90deg, rgba(251, 191, 36, 0.55), var(--murray)); box-shadow: 0 0 16px -2px var(--murray-glow); }
         .tug-mid {
             position: absolute;
             top: -3px; bottom: -3px;
@@ -1071,7 +1071,7 @@
             background: var(--glass-hi);
         }
         .country-item.is-riley::before { background: var(--riley); box-shadow: 0 0 12px var(--riley-glow); }
-        .country-item.is-murry::before { background: var(--murry); box-shadow: 0 0 12px var(--murry-glow); }
+        .country-item.is-murray::before { background: var(--murray); box-shadow: 0 0 12px var(--murray-glow); }
         .country-item:hover {
             transform: translateX(5px);
             border-color: var(--glass-hi);
@@ -1112,9 +1112,9 @@
             color: var(--riley-soft);
             border: 1px solid rgba(34, 211, 238, 0.3);
         }
-        .family-murry {
+        .family-murray {
             background: rgba(251, 191, 36, 0.12);
-            color: var(--murry-soft);
+            color: var(--murray-soft);
             border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
@@ -1140,7 +1140,7 @@
             color: var(--text-dim);
         }
         .difficulty-easy { background: rgba(52, 211, 153, 0.14); color: #6ee7b7; border-color: rgba(52, 211, 153, 0.3); }
-        .difficulty-medium { background: rgba(251, 191, 36, 0.14); color: var(--murry-soft); border-color: rgba(251, 191, 36, 0.3); }
+        .difficulty-medium { background: rgba(251, 191, 36, 0.14); color: var(--murray-soft); border-color: rgba(251, 191, 36, 0.3); }
         .difficulty-hard { background: rgba(251, 113, 133, 0.14); color: #fda4af; border-color: rgba(251, 113, 133, 0.3); }
 
         .wiki-link {
@@ -1529,7 +1529,7 @@
             border-radius: 999px;
         }
         .tour-cap-badge.riley { background: rgba(34, 211, 238, 0.16); color: var(--riley-soft); border: 1px solid rgba(34, 211, 238, 0.4); }
-        .tour-cap-badge.murry { background: rgba(251, 191, 36, 0.16); color: var(--murry-soft); border: 1px solid rgba(251, 191, 36, 0.4); }
+        .tour-cap-badge.murray { background: rgba(251, 191, 36, 0.16); color: var(--murray-soft); border: 1px solid rgba(251, 191, 36, 0.4); }
         .tour-cap-notes {
             margin-top: 15px;
             font-size: 1.03rem;
@@ -1541,14 +1541,14 @@
         .tour-arc { stroke-dasharray: 7 9; animation: tourDash 0.9s linear infinite; }
         @keyframes tourDash { to { stroke-dashoffset: -16; } }
         .tour-active-riley { animation: tourPulseRiley 2.6s ease-in-out infinite; }
-        .tour-active-murry { animation: tourPulseMurry 2.6s ease-in-out infinite; }
+        .tour-active-murray { animation: tourPulseMurray 2.6s ease-in-out infinite; }
         @keyframes tourPulseRiley {
             0%, 100% { filter: drop-shadow(0 0 6px var(--riley-glow)); }
             50% { filter: drop-shadow(0 0 22px var(--riley-glow)); }
         }
-        @keyframes tourPulseMurry {
-            0%, 100% { filter: drop-shadow(0 0 6px var(--murry-glow)); }
-            50% { filter: drop-shadow(0 0 22px var(--murry-glow)); }
+        @keyframes tourPulseMurray {
+            0%, 100% { filter: drop-shadow(0 0 6px var(--murray-glow)); }
+            50% { filter: drop-shadow(0 0 22px var(--murray-glow)); }
         }
 
         @media (max-width: 560px) {
@@ -1607,7 +1607,7 @@
             <h1>World Dinner Map Tracker</h1>
             <p class="subtitle">Themed dinners hosted by the
                 <span class="fam riley">Riley</span> &amp;
-                <span class="fam murry">Murry</span> families</p>
+                <span class="fam murray">Murray</span> families</p>
         </header>
 
         <div class="content">
@@ -1643,9 +1643,9 @@
                         <div class="stat-number" id="rileyCount">0</div>
                         <div class="stat-label">Riley</div>
                     </div>
-                    <div class="stat-card" id="card-murry">
-                        <div class="stat-number" id="murryCount">0</div>
-                        <div class="stat-label">Murry</div>
+                    <div class="stat-card" id="card-murray">
+                        <div class="stat-number" id="murrayCount">0</div>
+                        <div class="stat-label">Murray</div>
                     </div>
                 </div>
 
@@ -1662,7 +1662,7 @@
                 <div class="tug" id="tug" hidden>
                     <div class="tug-head">
                         <span class="r">Riley <span id="tugR">0</span></span>
-                        <span class="m"><span id="tugM">0</span> Murry</span>
+                        <span class="m"><span id="tugM">0</span> Murray</span>
                     </div>
                     <div class="tug-track">
                         <div class="tug-r" id="tugRbar" style="width:50%"></div>
@@ -1679,7 +1679,7 @@
 
                 <div class="legend">
                     <div class="legend-item"><span class="legend-dot riley"></span> Riley family</div>
-                    <div class="legend-item"><span class="legend-dot murry"></span> Murry family</div>
+                    <div class="legend-item"><span class="legend-dot murray"></span> Murray family</div>
                 </div>
 
                 <div class="ach-wrap" id="achWrap" hidden>
@@ -1740,7 +1740,7 @@
                 </div>
                 <div class="form-group">
                     <label for="familyCode">Family code</label>
-                    <input type="text" id="familyCode" placeholder="Enter 'riley' or 'murry'" required autocomplete="off">
+                    <input type="text" id="familyCode" placeholder="Enter 'riley' or 'murray'" required autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="dinnerDate">Date of the dinner (optional)</label>
@@ -2041,6 +2041,8 @@
         // Normalise a dinner record (single photo -> array, ensure fields)
         function normalizeDinner(d) {
             if (!d || typeof d !== 'object') return d;
+            // Older data (and older sheets) spelled the family "murry"
+            if (typeof d.family === 'string' && d.family.trim().toLowerCase() === 'murry') d.family = 'murray';
             if (!Array.isArray(d.photos)) d.photos = d.photo ? [d.photo] : [];
             if (!Array.isArray(d.tags)) d.tags = typeof d.tags === 'string' && d.tags ? d.tags.split('|') : [];
             if (typeof d.date !== 'string') d.date = '';
@@ -2315,8 +2317,8 @@
             { id: 'alphabet', ico: '🔤', label: 'Alphabet soup', desc: 'Countries starting with 12 different letters.', target: 12, cur: s => s.letters },
             // Rivalry
             { id: 'teamwork', ico: '🤝', label: 'Teamwork', desc: 'Both families cook in the same continent.', test: s => s.sharedContinents >= 1 },
-            { id: 'balanced', ico: '⚖️', label: 'Perfectly balanced', desc: '6+ dinners with the scores dead level.', test: s => s.total >= 6 && s.riley === s.murry },
-            { id: 'runaway', ico: '🏃', label: 'Runaway leader', desc: 'One family gets 5 dinners ahead.', test: s => Math.abs(s.riley - s.murry) >= 5 },
+            { id: 'balanced', ico: '⚖️', label: 'Perfectly balanced', desc: '6+ dinners with the scores dead level.', test: s => s.total >= 6 && s.riley === s.murray },
+            { id: 'runaway', ico: '🏃', label: 'Runaway leader', desc: 'One family gets 5 dinners ahead.', test: s => Math.abs(s.riley - s.murray) >= 5 },
             // Cooking style
             { id: 'daredevils', ico: '🌶️', label: 'Daredevils', desc: 'Three dinners rated Hard.', target: 3, cur: s => s.hard },
             { id: 'comfort', ico: '🛋️', label: 'Comfort food', desc: 'Five dinners rated Easy.', target: 5, cur: s => s.easy },
@@ -2357,7 +2359,7 @@
             const names = Object.keys(dinnerData);
             const riley = names.filter(n => dinnerData[n].family === 'riley').length;
             const perContinent = {};
-            CONTINENT_ORDER.forEach(c => { perContinent[c] = { done: 0, riley: 0, murry: 0, total: (CONTINENTS[c] || '').split('|').filter(Boolean).length }; });
+            CONTINENT_ORDER.forEach(c => { perContinent[c] = { done: 0, riley: 0, murray: 0, total: (CONTINENTS[c] || '').split('|').filter(Boolean).length }; });
             const cuisines = {};
             const months = {};
             const letters = {};
@@ -2374,7 +2376,7 @@
                 const c = COUNTRY_CONTINENT[n];
                 if (c && perContinent[c]) {
                     perContinent[c].done++;
-                    perContinent[c][d.family === 'riley' ? 'riley' : 'murry']++;
+                    perContinent[c][d.family === 'riley' ? 'riley' : 'murray']++;
                     if (c === 'Antarctica') hasAntarctica = true;
                 }
                 if (d.difficulty === 'easy') easy++;
@@ -2432,7 +2434,7 @@
             return {
                 total: names.length,
                 riley: riley,
-                murry: names.length - riley,
+                murray: names.length - riley,
                 easy: easy, hard: hard, withPhotos: withPhotos, withNotes: withNotes,
                 islands: islands, landlocked: landlocked, stans: stans,
                 microDone: microDone, hasAntarctica: hasAntarctica,
@@ -2448,7 +2450,7 @@
                 perContinent: perContinent,
                 touchedContinents: real.filter(c => perContinent[c].done > 0).length,
                 fullContinents: real.filter(c => perContinent[c].total > 0 && perContinent[c].done === perContinent[c].total),
-                sharedContinents: real.filter(c => perContinent[c].riley > 0 && perContinent[c].murry > 0).length,
+                sharedContinents: real.filter(c => perContinent[c].riley > 0 && perContinent[c].murray > 0).length,
                 grandTour: real.every(c => perContinent[c].done >= 2)
             };
         }
@@ -2580,7 +2582,7 @@
             let hx = 60;
             ctx.fillStyle = '#22d3ee'; ctx.fillText('Riley', hx, 112); hx += ctx.measureText('Riley').width;
             ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillText('  &  ', hx, 112); hx += ctx.measureText('  &  ').width;
-            ctx.fillStyle = '#fbbf24'; ctx.fillText('Murry', hx, 112);
+            ctx.fillStyle = '#fbbf24'; ctx.fillText('Murray', hx, 112);
 
             drawCardMap(ctx, 60, 146, W - 120, 320);
 
@@ -2603,7 +2605,7 @@
             ctx.fillText('Riley ' + s.riley, barX, fy - 12);
             ctx.textAlign = 'right';
             ctx.fillStyle = '#fcd34d';
-            ctx.fillText(s.murry + ' Murry', barX + barW, fy - 12);
+            ctx.fillText(s.murray + ' Murray', barX + barW, fy - 12);
             ctx.textAlign = 'left';
             ctx.fillStyle = 'rgba(255,255,255,0.09)';
             roundRectPath(ctx, barX, fy, barW, barH, 8);
@@ -2965,7 +2967,7 @@
             const dinner = dinnerData[countryName];
             let tooltip = `<strong>${escapeHtml(countryName)}</strong>`;
             if (dinner) {
-                tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murry'} Family</strong>`;
+                tooltip += `<br><strong>${dinner.family === 'riley' ? 'Riley' : 'Murray'} Family</strong>`;
                 if (dinner.cuisine) {
                     tooltip += `<br>Cuisine: ${escapeHtml(dinner.cuisine)}`;
                 }
@@ -2999,7 +3001,7 @@
                 fillOpacity: 0.55,
                 color: isRiley ? '#67e8f9' : '#fcd34d',
                 weight: 1.4,
-                className: 'country-glow ' + (isRiley ? 'country-riley' : 'country-murry')
+                className: 'country-glow ' + (isRiley ? 'country-riley' : 'country-murray')
             };
         }
 
@@ -3045,15 +3047,16 @@
         async function saveCountry(event) {
             event.preventDefault();
 
-            const familyCode = document.getElementById('familyCode').value.toLowerCase().trim();
+            let familyCode = document.getElementById('familyCode').value.toLowerCase().trim();
+            if (familyCode === 'murry') familyCode = 'murray'; // accept the old spelling
             const notes = document.getElementById('notes').value.trim();
             const cuisine = document.getElementById('cuisine').value.trim();
             const difficulty = document.getElementById('difficulty').value;
             const date = document.getElementById('dinnerDate').value || '';
             const tags = readVibeChips();
 
-            if (familyCode !== 'riley' && familyCode !== 'murry') {
-                toast('Family code must be "riley" or "murry"', 'err');
+            if (familyCode !== 'riley' && familyCode !== 'murray') {
+                toast('Family code must be "riley" or "murray"', 'err');
                 return;
             }
 
@@ -3101,7 +3104,7 @@
 
                 if (isNew) {
                     fireConfetti();
-                    toast(savedCountry + ' added — ' + (familyCode === 'riley' ? 'Riley' : 'Murry') + ' family!', 'ok');
+                    toast(savedCountry + ' added — ' + (familyCode === 'riley' ? 'Riley' : 'Murray') + ' family!', 'ok');
                 } else {
                     toast(savedCountry + ' updated', 'ok');
                 }
@@ -3156,7 +3159,7 @@
                 // Leaflet's setStyle doesn't re-apply className, so manage the glow classes ourselves
                 if (layer._path) {
                     const p = layer._path;
-                    p.classList.remove('country-riley', 'country-murry', 'country-empty', 'country-glow');
+                    p.classList.remove('country-riley', 'country-murray', 'country-empty', 'country-glow');
                     (style.className || '').split(' ').filter(Boolean).forEach(c => p.classList.add(c));
                 }
                 layer.setTooltipContent(buildTooltip(countryName));
@@ -3167,11 +3170,11 @@
         function updateUI() {
             let countries = Object.keys(dinnerData);
             const rileyCount = countries.filter(c => dinnerData[c].family === 'riley').length;
-            const murryCount = countries.filter(c => dinnerData[c].family === 'murry').length;
+            const murrayCount = countries.filter(c => dinnerData[c].family === 'murray').length;
 
             animateCount('totalCount', countries.length);
             animateCount('rileyCount', rileyCount);
-            animateCount('murryCount', murryCount);
+            animateCount('murrayCount', murrayCount);
             document.getElementById('completedCount').textContent = countries.length;
 
             const totalCountries = allCountries.length || 195;
@@ -3214,10 +3217,10 @@
                     const dinner = dinnerData[countryName];
                     const li = document.createElement('li');
                     const isRiley = dinner.family === 'riley';
-                    li.className = 'country-item ' + (isRiley ? 'is-riley' : 'is-murry');
+                    li.className = 'country-item ' + (isRiley ? 'is-riley' : 'is-murray');
 
-                    const familyClass = isRiley ? 'family-riley' : 'family-murry';
-                    const familyDisplay = isRiley ? 'Riley' : 'Murry';
+                    const familyClass = isRiley ? 'family-riley' : 'family-murray';
+                    const familyDisplay = isRiley ? 'Riley' : 'Murray';
 
                     let notesHtml = '';
                     if (dinner.notes) {
@@ -3295,15 +3298,15 @@
             } else {
                 tug.hidden = false;
                 document.getElementById('tugR').textContent = s.riley;
-                document.getElementById('tugM').textContent = s.murry;
+                document.getElementById('tugM').textContent = s.murray;
                 const rPct = s.total ? (s.riley / s.total) * 100 : 50;
                 document.getElementById('tugRbar').style.width = rPct + '%';
                 document.getElementById('tugMbar').style.width = (100 - rPct) + '%';
                 document.getElementById('tugMid').style.left = rPct + '%';
-                const diff = s.riley - s.murry;
+                const diff = s.riley - s.murray;
                 document.getElementById('tugNote').textContent =
                     diff === 0 ? 'Neck and neck' :
-                    (diff > 0 ? 'Riley' : 'Murry') + ' ahead by ' + Math.abs(diff);
+                    (diff > 0 ? 'Riley' : 'Murray') + ' ahead by ' + Math.abs(diff);
             }
 
             // Per-continent breakdown
@@ -3605,7 +3608,7 @@
                 escapeHtml(name);
             if (d) {
                 h += '<br><span style="color:' + (d.family === 'riley' ? '#67e8f9' : '#fcd34d') + ';font-weight:700">' +
-                    (d.family === 'riley' ? 'Riley' : 'Murry') + ' family</span>';
+                    (d.family === 'riley' ? 'Riley' : 'Murray') + ' family</span>';
                 if (d.cuisine) h += '<br><span style="color:#9aa3b8">' + escapeHtml(d.cuisine) + '</span>';
                 if (d.notes) h += '<br><span style="color:#828aa0;font-style:italic">' + escapeHtml(d.notes) + '</span>';
             } else {
@@ -3825,9 +3828,9 @@
                 const isActive = name === activeName;
                 layer.setStyle(tourCountryStyle(name, isActive));
                 if (layer._path) {
-                    layer._path.classList.remove('tour-active-riley', 'tour-active-murry');
+                    layer._path.classList.remove('tour-active-riley', 'tour-active-murray');
                     if (isActive && dinnerData[name]) {
-                        layer._path.classList.add(dinnerData[name].family === 'riley' ? 'tour-active-riley' : 'tour-active-murry');
+                        layer._path.classList.add(dinnerData[name].family === 'riley' ? 'tour-active-riley' : 'tour-active-murray');
                     }
                 }
                 if (isActive) layer.bringToFront();
@@ -3907,8 +3910,8 @@
 
         function tourRenderCaption(name) {
             const d = dinnerData[name] || {};
-            const fam = d.family === 'riley' ? 'riley' : 'murry';
-            const famLabel = d.family === 'riley' ? 'Riley family' : 'Murry family';
+            const fam = d.family === 'riley' ? 'riley' : 'murray';
+            const famLabel = d.family === 'riley' ? 'Riley family' : 'Murray family';
             const when = prettyDate(effectiveDate(d));
             const meta = [`<span class="tour-cap-badge ${fam}">${famLabel}</span>`];
             if (d.cuisine) meta.push(`<span>${escapeHtml(d.cuisine)}</span>`);
