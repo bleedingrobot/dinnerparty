@@ -3151,10 +3151,14 @@
         function updateCountryOnMap(countryName) {
             const layer = countryLayers[countryName];
             if (layer) {
+                const style = getCountryStyle(countryName);
+                layer.setStyle(style);
+                // Leaflet's setStyle doesn't re-apply className, so manage the glow classes ourselves
                 if (layer._path) {
-                    layer._path.classList.remove('country-riley', 'country-murry', 'country-empty', 'country-glow');
+                    const p = layer._path;
+                    p.classList.remove('country-riley', 'country-murry', 'country-empty', 'country-glow');
+                    (style.className || '').split(' ').filter(Boolean).forEach(c => p.classList.add(c));
                 }
-                layer.setStyle(getCountryStyle(countryName));
                 layer.setTooltipContent(buildTooltip(countryName));
             }
         }
