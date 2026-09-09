@@ -631,11 +631,71 @@
             background: rgba(34, 211, 238, 0.10);
         }
         .badge.unlocked .b-ico { filter: none; }
+        .badge { position: relative; overflow: hidden; }
+        .badge-fill {
+            position: absolute;
+            left: 0; bottom: 0;
+            height: 3px;
+            background: var(--accent-grad);
+            transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
         .badge.pop { animation: badgePop 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes badgePop {
             0% { transform: scale(0.4); opacity: 0; }
             55% { transform: scale(1.18); }
             100% { transform: scale(1); opacity: 1; }
+        }
+
+        .ach-wrap { margin-bottom: 18px; }
+        .ach-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 9px;
+        }
+        .ach-head b { color: var(--riley-soft); }
+        .ach-toggle {
+            font-family: inherit;
+            font-size: 0.92em;
+            font-weight: 600;
+            color: var(--riley-soft);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+        .ach-toggle:hover { text-decoration: underline; }
+
+        /* Dinner vibe toggle chips */
+        .vibe-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+        .vibe-chip {
+            font-size: 0.76em;
+            font-weight: 500;
+            padding: 6px 11px;
+            border-radius: 999px;
+            border: 1px solid var(--glass-brd);
+            background: var(--glass-bg);
+            color: var(--text-dim);
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+        }
+        .vibe-chip:hover { border-color: var(--glass-hi); }
+        .vibe-chip.on {
+            color: var(--text);
+            border-color: rgba(34, 211, 238, 0.45);
+            background: rgba(34, 211, 238, 0.13);
+        }
+
+        .country-vibes {
+            margin-top: 7px;
+            font-size: 1em;
+            letter-spacing: 3px;
+            line-height: 1;
         }
 
         /* ---------- Toasts ---------- */
@@ -1585,7 +1645,13 @@
                     <div class="legend-item"><span class="legend-dot murry"></span> Murry family</div>
                 </div>
 
-                <div class="achievements" id="achievements" hidden></div>
+                <div class="ach-wrap" id="achWrap" hidden>
+                    <div class="ach-head">
+                        <span>Achievements <b class="count-badge" id="achCount">0 / 0</b></span>
+                        <button type="button" class="ach-toggle" id="achToggle" onclick="toggleAchShowAll()">Show all</button>
+                    </div>
+                    <div class="achievements" id="achievements"></div>
+                </div>
 
                 <button class="btn btn-share" id="shareBtn" onclick="openShareCard()" hidden>&#128248;&nbsp; Share progress</button>
 
@@ -1667,6 +1733,10 @@
                         <input type="file" id="photoInput" accept="image/*" multiple hidden>
                         <button type="button" class="btn btn-secondary" id="photoPickBtn">+ Add photos</button>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label>Dinner vibe <span style="color:var(--text-faint);font-weight:400">— tick what happened</span></label>
+                    <div class="vibe-grid" id="vibeGrid"></div>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save</button>
@@ -1935,6 +2005,7 @@
         function normalizeDinner(d) {
             if (!d || typeof d !== 'object') return d;
             if (!Array.isArray(d.photos)) d.photos = d.photo ? [d.photo] : [];
+            if (!Array.isArray(d.tags)) d.tags = typeof d.tags === 'string' && d.tags ? d.tags.split('|') : [];
             if (typeof d.date !== 'string') d.date = '';
             return d;
         }
@@ -2115,9 +2186,46 @@
             renderPhotoGrid();
         }
 
+        // ---------- Dinner vibe chips ----------
+        function renderVibeChips(selected) {
+            const set = new Set(selected || []);
+            const grid = document.getElementById('vibeGrid');
+            grid.innerHTML = '';
+            VIBE_TAGS.forEach(t => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'vibe-chip' + (set.has(t.id) ? ' on' : '');
+                chip.dataset.tag = t.id;
+                chip.textContent = t.ico + ' ' + t.label;
+                chip.addEventListener('click', () => chip.classList.toggle('on'));
+                grid.appendChild(chip);
+            });
+        }
+        function readVibeChips() {
+            return Array.from(document.querySelectorAll('#vibeGrid .vibe-chip.on')).map(c => c.dataset.tag);
+        }
+
+        // ---------- Dinner "vibe" tags (ticked by the family per dinner) ----------
+        const VIBE_TAGS = [
+            { id: 'costume', ico: '🎭', label: 'Everyone in costume' },
+            { id: 'playlist', ico: '🎶', label: 'Themed playlist' },
+            { id: 'decor', ico: '🕯️', label: 'Decorated the table / room' },
+            { id: 'scratch', ico: '🍳', label: 'Everything from scratch' },
+            { id: 'language', ico: '🗣️', label: 'Attempted the language' },
+            { id: 'film', ico: '🎬', label: 'Watched a film from there' },
+            { id: 'fact', ico: '📖', label: 'Someone gave a "fact" / talk' },
+            { id: 'drinks', ico: '🍷', label: 'Country-matched drinks' },
+            { id: 'guest', ico: '🧑‍🍳', label: 'A guest cooked' },
+            { id: 'kids', ico: '👶', label: 'Kids helped cook' },
+            { id: 'disaster', ico: '🔥', label: 'Kitchen disaster' },
+            { id: 'spicy', ico: '🥵', label: 'Too spicy for someone' },
+            { id: 'laughing', ico: '😂', label: 'Someone cried laughing' },
+            { id: 'signature', ico: '🏅', label: 'New signature dish' }
+        ];
+        const VIBE_BY_ID = {};
+        VIBE_TAGS.forEach(t => { VIBE_BY_ID[t.id] = t; });
+
         // ---------- Achievements ----------
-        // Island / archipelago nations. Some are too small to appear on the map but
-        // could arrive via an imported backup, so they are included anyway.
         const ISLAND_NATIONS = new Set(('Japan|United Kingdom|Ireland|Iceland|New Zealand|Fiji|Cuba|Jamaica|Haiti|' +
             'Dominican Republic|Sri Lanka|Madagascar|Taiwan|Cyprus|Northern Cyprus|Malta|Trinidad and Tobago|The Bahamas|' +
             'Solomon Islands|Vanuatu|New Caledonia|Indonesia|Philippines|Papua New Guinea|Brunei|East Timor|' +
@@ -2126,31 +2234,87 @@
             'Saint Vincent and the Grenadines|Palau|Nauru|Tuvalu|Kiribati|Marshall Islands|' +
             'Federated States of Micronesia|Micronesia|Samoa|Tonga').split('|'));
 
+        const LANDLOCKED = new Set(('Afghanistan|Armenia|Austria|Azerbaijan|Belarus|Bhutan|Bolivia|Botswana|Burkina Faso|' +
+            'Burundi|Central African Republic|Chad|Czech Republic|Ethiopia|Hungary|Kazakhstan|Kosovo|Kyrgyzstan|Laos|Lesotho|' +
+            'Luxembourg|Macedonia|Malawi|Mali|Moldova|Mongolia|Nepal|Niger|Paraguay|Rwanda|Republic of Serbia|Slovakia|' +
+            'South Sudan|Swaziland|Switzerland|Tajikistan|Turkmenistan|Uganda|Uzbekistan|West Bank|Zambia|Zimbabwe|' +
+            'Liechtenstein|San Marino|Andorra|Vatican|Eswatini').split('|'));
+
+        const MICROSTATES = new Set(('Malta|Luxembourg|Andorra|Liechtenstein|San Marino|Monaco|Vatican|Singapore|Bahrain|' +
+            'Barbados|Grenada|Saint Lucia|Saint Vincent and the Grenadines|Antigua and Barbuda|Dominica|Saint Kitts and Nevis|' +
+            'Seychelles|Maldives|Comoros|Nauru|Tuvalu|Palau|Marshall Islands|Kiribati|Tonga|Micronesia|' +
+            'Cabo Verde|Cape Verde|Sao Tome and Principe').split('|'));
+
+        // target + cur  => a counting badge with a progress bar
+        // test          => a one-shot yes/no badge
         const ACHIEVEMENTS = [
+            // Milestones
             { id: 'first', ico: '🍽️', label: 'First dinner', desc: 'Log your very first themed dinner.', test: s => s.total >= 1 },
-            { id: 'five', ico: '🖐️', label: 'Five down', desc: 'Reach 5 dinners.', test: s => s.total >= 5 },
-            { id: 'ten', ico: '🔟', label: 'Double figures', desc: 'Reach 10 dinners.', test: s => s.total >= 10 },
-            { id: 'twentyfive', ico: '🎖️', label: 'Quarter century', desc: 'Reach 25 dinners.', test: s => s.total >= 25 },
-            { id: 'fifty', ico: '🏆', label: 'Half a hundred', desc: 'Reach 50 dinners.', test: s => s.total >= 50 },
-            { id: 'century', ico: '💯', label: 'Century', desc: 'Reach 100 dinners. Serious dedication.', test: s => s.total >= 100 },
-            { id: 'halfway', ico: '🌗', label: 'Halfway round the world', desc: 'Dine in half of the world’s ~195 countries.', test: s => s.total >= 98 },
-            { id: 'continent', ico: '🗺️', label: 'Continent complete', desc: 'Cook a dinner from every country on one whole continent.', test: s => s.fullContinents.length >= 1, detail: s => s.fullContinents[0] },
-            { id: 'sweep', ico: '🌐', label: 'Continental sweep', desc: 'Finish three entire continents.', test: s => s.fullContinents.length >= 3 },
-            { id: 'globetrotter', ico: '✈️', label: 'Globetrotter', desc: 'A dinner on every continent (Antarctica optional).', test: s => s.touchedContinents >= 6 },
+            { id: 'five', ico: '🖐️', label: 'Five down', desc: 'Reach 5 dinners.', target: 5, cur: s => s.total },
+            { id: 'ten', ico: '🔟', label: 'Double figures', desc: 'Reach 10 dinners.', target: 10, cur: s => s.total },
+            { id: 'twentyfive', ico: '🎖️', label: 'Quarter century', desc: 'Reach 25 dinners.', target: 25, cur: s => s.total },
+            { id: 'fifty', ico: '🏆', label: 'Half a hundred', desc: 'Reach 50 dinners.', target: 50, cur: s => s.total },
+            { id: 'century', ico: '💯', label: 'Century', desc: 'Reach 100 dinners. Serious dedication.', target: 100, cur: s => s.total },
+            { id: 'groupstage', ico: '⚽', label: 'Group stage', desc: 'Reach 32 countries — a full World Cup.', target: 32, cur: s => s.total },
+            { id: 'halfway', ico: '🌗', label: 'Halfway round the world', desc: 'Dine in half of the world’s ~195 countries.', target: 98, cur: s => s.total },
+            // Exploration
+            { id: 'continent', ico: '🗺️', label: 'Continent complete', desc: 'Every country on one whole continent.', test: s => s.fullContinents.length >= 1, detail: s => s.fullContinents[0] },
+            { id: 'sweep', ico: '🌐', label: 'Continental sweep', desc: 'Finish three entire continents.', target: 3, cur: s => s.fullContinents.length },
+            { id: 'globetrotter', ico: '✈️', label: 'Globetrotter', desc: 'A dinner on every continent (Antarctica optional).', target: 6, cur: s => s.touchedContinents },
+            { id: 'fullset', ico: '🌍', label: 'The full set', desc: 'A dinner on all seven continents — Antarctica included.', test: s => s.touchedContinents >= 6 && s.hasAntarctica },
+            { id: 'grandtour', ico: '🎡', label: 'The grand tour', desc: 'Two or more dinners on every continent.', test: s => s.grandTour },
             { id: 'antarctica', ico: '🐧', label: 'Cold open', desc: 'Somehow, a dinner representing Antarctica.', test: s => s.hasAntarctica },
-            { id: 'teamwork', ico: '🤝', label: 'Teamwork', desc: 'Both families cook a dinner in the same continent.', test: s => s.sharedContinents >= 1 },
-            { id: 'balanced', ico: '⚖️', label: 'Perfectly balanced', desc: '6 or more dinners with the family scores dead level.', test: s => s.total >= 6 && s.riley === s.murry },
-            { id: 'runaway', ico: '🏃', label: 'Runaway leader', desc: 'One family gets 5 dinners ahead of the other.', test: s => Math.abs(s.riley - s.murry) >= 5 },
-            { id: 'daredevils', ico: '🌶️', label: 'Daredevils', desc: 'Three dinners rated Hard.', test: s => s.hard >= 3 },
-            { id: 'comfort', ico: '🛋️', label: 'Comfort food', desc: 'Five dinners rated Easy.', test: s => s.easy >= 5 },
-            { id: 'photographer', ico: '📸', label: 'Say cheese', desc: 'Add photos to 5 different dinners.', test: s => s.withPhotos >= 5 },
-            { id: 'critic', ico: '✍️', label: 'Food critic', desc: 'Write notes on 10 dinners.', test: s => s.withNotes >= 10 },
-            { id: 'meltingpot', ico: '🥘', label: 'Melting pot', desc: 'Cover 8 different cuisine types.', test: s => s.distinctCuisines >= 8 },
-            { id: 'hattrick', ico: '🎩', label: 'Hat-trick', desc: 'Three dinners of the same cuisine type.', test: s => s.maxSameCuisine >= 3 },
-            { id: 'islandhop', ico: '🏝️', label: 'Island hopper', desc: 'Five island nations.', test: s => s.islands >= 5 },
-            { id: 'marathon', ico: '📅', label: 'Marathon month', desc: 'Four dinners dated in the same calendar month.', test: s => s.maxMonth >= 4 },
-            { id: 'streak', ico: '🔗', label: 'On a roll', desc: 'Dinners dated in three consecutive months.', test: s => s.monthStreak >= 3 }
+            { id: 'anniversary', ico: '🎂', label: 'Anniversary', desc: 'Your dinners span a full year (needs real dates).', test: s => s.spanDays >= 365 },
+            // Places
+            { id: 'islandhop', ico: '🏝️', label: 'Island hopper', desc: 'Five island nations.', target: 5, cur: s => s.islands },
+            { id: 'landlocked', ico: '🏔️', label: 'Landlocked & loving it', desc: 'Five countries with no coastline.', target: 5, cur: s => s.landlocked },
+            { id: 'stans', ico: '🕌', label: 'Collect the Stans', desc: 'Three countries ending in “-stan”.', target: 3, cur: s => s.stans },
+            { id: 'micro', ico: '🐜', label: 'Tiny but mighty', desc: 'A microstate — you could fit it in a city.', test: s => s.microDone },
+            { id: 'bigone', ico: '🐻', label: 'The big one', desc: 'Russia — the largest country on Earth.', test: s => !!dinnerData['Russia'] },
+            { id: 'downunder', ico: '🦘', label: 'Down under', desc: 'Australia and New Zealand both done.', test: s => !!dinnerData['Australia'] && !!dinnerData['New Zealand'] },
+            { id: 'coldfeet', ico: '🧊', label: 'Cold feet', desc: 'Three countries in the far north or far south.', target: 3, cur: s => s.coldFeet },
+            { id: 'equator', ico: '🌡️', label: 'Equator club', desc: 'Three countries sitting on the equator.', target: 3, cur: s => s.equatorial },
+            { id: 'antipodes', ico: '🛫', label: 'Opposite ends of the Earth', desc: 'Two countries on roughly opposite sides of the globe.', test: s => s.antipodal },
+            { id: 'alphabet', ico: '🔤', label: 'Alphabet soup', desc: 'Countries starting with 12 different letters.', target: 12, cur: s => s.letters },
+            // Rivalry
+            { id: 'teamwork', ico: '🤝', label: 'Teamwork', desc: 'Both families cook in the same continent.', test: s => s.sharedContinents >= 1 },
+            { id: 'balanced', ico: '⚖️', label: 'Perfectly balanced', desc: '6+ dinners with the scores dead level.', test: s => s.total >= 6 && s.riley === s.murry },
+            { id: 'runaway', ico: '🏃', label: 'Runaway leader', desc: 'One family gets 5 dinners ahead.', test: s => Math.abs(s.riley - s.murry) >= 5 },
+            // Cooking style
+            { id: 'daredevils', ico: '🌶️', label: 'Daredevils', desc: 'Three dinners rated Hard.', target: 3, cur: s => s.hard },
+            { id: 'comfort', ico: '🛋️', label: 'Comfort food', desc: 'Five dinners rated Easy.', target: 5, cur: s => s.easy },
+            { id: 'meltingpot', ico: '🥘', label: 'Melting pot', desc: 'Eight different cuisine types.', target: 8, cur: s => s.distinctCuisines },
+            { id: 'hattrick', ico: '🎩', label: 'Hat-trick', desc: 'Three dinners of the same cuisine.', target: 3, cur: s => s.maxSameCuisine },
+            { id: 'photographer', ico: '📸', label: 'Say cheese', desc: 'Photos on 5 different dinners.', target: 5, cur: s => s.withPhotos },
+            { id: 'critic', ico: '✍️', label: 'Food critic', desc: 'Notes on 10 dinners.', target: 10, cur: s => s.withNotes },
+            // Dates
+            { id: 'marathon', ico: '📅', label: 'Marathon month', desc: 'Four dinners dated in the same calendar month.', target: 4, cur: s => s.maxMonth },
+            { id: 'streak', ico: '🔗', label: 'On a roll', desc: 'Dinners dated in three months running.', target: 3, cur: s => s.monthStreak },
+            // Vibe tags
+            { id: 'methodactors', ico: '🎭', label: 'Method actors', desc: '“Everyone in costume” at 3 dinners.', target: 3, cur: s => s.tagCount.costume },
+            { id: 'fullproduction', ico: '🎬', label: 'The full production', desc: 'One dinner with costume + playlist + decor + film all ticked.', test: s => s.fullProduction >= 1 },
+            { id: 'fromscratch', ico: '🍳', label: 'From-scratch club', desc: '“Everything from scratch” at 5 dinners.', target: 5, cur: s => s.tagCount.scratch },
+            { id: 'linguists', ico: '🗣️', label: 'Linguists', desc: 'Attempted the language for 5 countries.', target: 5, cur: s => s.tagCount.language },
+            { id: 'sommeliers', ico: '🍷', label: 'Sommeliers', desc: 'Country-matched drinks at 8 dinners.', target: 8, cur: s => s.tagCount.drinks },
+            { id: 'movienight', ico: '🍿', label: 'Movie night', desc: 'Watched a film from the country at 5 dinners.', target: 5, cur: s => s.tagCount.film },
+            { id: 'roast', ico: '😂', label: 'The roast', desc: '“Someone cried laughing” at 10 dinners.', target: 10, cur: s => s.tagCount.laughing },
+            { id: 'nightmares', ico: '🔥', label: 'Kitchen nightmares', desc: '“Kitchen disaster” at 3 dinners — badge of honour.', target: 3, cur: s => s.tagCount.disaster },
+            { id: 'heat', ico: '🥵', label: 'Can’t handle the heat', desc: '“Too spicy for someone” at 3 dinners.', target: 3, cur: s => s.tagCount.spicy },
+            { id: 'openkitchen', ico: '🧑‍🍳', label: 'Open kitchen', desc: 'A guest cooked at 3 dinners.', target: 3, cur: s => s.tagCount.guest },
+            { id: 'souschefs', ico: '👶', label: 'Sous chefs', desc: 'Kids helped at 5 dinners.', target: 5, cur: s => s.tagCount.kids },
+            { id: 'showandtell', ico: '📖', label: 'Show and tell', desc: 'A “fact” or talk at 10 dinners.', target: 10, cur: s => s.tagCount.fact },
+            { id: 'setdesigners', ico: '🕯️', label: 'Set designers', desc: 'Decorated the table at 10 dinners.', target: 10, cur: s => s.tagCount.decor },
+            { id: 'djs', ico: '🎶', label: 'Resident DJs', desc: 'A themed playlist at 10 dinners.', target: 10, cur: s => s.tagCount.playlist }
         ];
+
+        // Resolve a badge to { on, cur, target } for the given stats
+        function achState(a, s) {
+            if (a.target != null) {
+                const cur = a.cur(s) || 0;
+                return { on: cur >= a.target, cur: Math.min(cur, a.target), target: a.target };
+            }
+            return { on: !!a.test(s), cur: 0, target: 0 };
+        }
 
         function computeStats() {
             const names = Object.keys(dinnerData);
@@ -2159,7 +2323,14 @@
             CONTINENT_ORDER.forEach(c => { perContinent[c] = { done: 0, riley: 0, murry: 0, total: (CONTINENTS[c] || '').split('|').filter(Boolean).length }; });
             const cuisines = {};
             const months = {};
-            let easy = 0, hard = 0, withPhotos = 0, withNotes = 0, islands = 0, hasAntarctica = false;
+            const letters = {};
+            const tagCount = {};
+            VIBE_TAGS.forEach(t => { tagCount[t.id] = 0; });
+            let easy = 0, hard = 0, withPhotos = 0, withNotes = 0, islands = 0, landlocked = 0, stans = 0;
+            let hasAntarctica = false, microDone = false, fullProduction = 0;
+            let coldFeet = 0, equatorial = 0;
+            const coords = [];
+            let minDate = '', maxDate = '';
 
             names.forEach(n => {
                 const d = dinnerData[n];
@@ -2174,43 +2345,74 @@
                 if (d.photos && d.photos.length) withPhotos++;
                 if (d.notes && d.notes.trim()) withNotes++;
                 if (ISLAND_NATIONS.has(n)) islands++;
+                if (LANDLOCKED.has(n)) landlocked++;
+                if (MICROSTATES.has(n)) microDone = true;
+                if (n.toLowerCase().slice(-4) === 'stan') stans++;
+                letters[n[0].toUpperCase()] = true;
+                (d.tags || []).forEach(t => { if (tagCount[t] != null) tagCount[t]++; });
+                if (['costume', 'playlist', 'decor', 'film'].every(t => (d.tags || []).indexOf(t) !== -1)) fullProduction++;
                 if (d.cuisine && d.cuisine.trim()) {
                     const key = d.cuisine.trim().toLowerCase();
                     cuisines[key] = (cuisines[key] || 0) + 1;
                 }
-                // month achievements use the *real* dinner date only, not the logged-on fallback
-                if (d.date && d.date.length >= 7) { const m = d.date.slice(0, 7); months[m] = (months[m] || 0) + 1; }
+                if (d.date && d.date.length >= 7) {
+                    months[d.date.slice(0, 7)] = (months[d.date.slice(0, 7)] || 0) + 1;
+                    if (!minDate || d.date < minDate) minDate = d.date;
+                    if (!maxDate || d.date > maxDate) maxDate = d.date;
+                }
+                const cc = countryCentroids[n];
+                if (cc) {
+                    coords.push(cc);
+                    if (cc.lat >= 60 || cc.lat <= -40) coldFeet++;
+                    if (Math.abs(cc.lat) <= 10) equatorial++;
+                }
             });
+
+            // roughly-antipodal pair among completed countries
+            let antipodal = false;
+            for (let i = 0; i < coords.length && !antipodal; i++) {
+                for (let j = i + 1; j < coords.length; j++) {
+                    let dl = Math.abs(coords[i].lng - coords[j].lng);
+                    if (dl > 180) dl = 360 - dl;
+                    if (dl >= 150 && Math.abs(coords[i].lat + coords[j].lat) <= 35) { antipodal = true; break; }
+                }
+            }
 
             const cuisineCounts = Object.keys(cuisines).map(k => cuisines[k]);
             const monthKeys = Object.keys(months).sort();
             let monthStreak = monthKeys.length ? 1 : 0, run = monthKeys.length ? 1 : 0;
             for (let i = 1; i < monthKeys.length; i++) {
-                const [py, pm] = monthKeys[i - 1].split('-').map(Number);
-                const [cy, cm] = monthKeys[i].split('-').map(Number);
-                run = (cy * 12 + cm) - (py * 12 + pm) === 1 ? run + 1 : 1;
+                const a = monthKeys[i - 1].split('-').map(Number);
+                const b = monthKeys[i].split('-').map(Number);
+                run = (b[0] * 12 + b[1]) - (a[0] * 12 + a[1]) === 1 ? run + 1 : 1;
                 if (run > monthStreak) monthStreak = run;
             }
+            const spanDays = (minDate && maxDate)
+                ? Math.round((new Date(maxDate + 'T12:00:00') - new Date(minDate + 'T12:00:00')) / 86400000)
+                : 0;
 
             const real = CONTINENT_ORDER.filter(c => c !== 'Antarctica');
             return {
                 total: names.length,
                 riley: riley,
                 murry: names.length - riley,
-                easy: easy,
-                hard: hard,
-                withPhotos: withPhotos,
-                withNotes: withNotes,
-                islands: islands,
-                hasAntarctica: hasAntarctica,
+                easy: easy, hard: hard, withPhotos: withPhotos, withNotes: withNotes,
+                islands: islands, landlocked: landlocked, stans: stans,
+                microDone: microDone, hasAntarctica: hasAntarctica,
+                coldFeet: coldFeet, equatorial: equatorial, antipodal: antipodal,
+                letters: Object.keys(letters).length,
                 distinctCuisines: cuisineCounts.length,
                 maxSameCuisine: cuisineCounts.length ? Math.max.apply(null, cuisineCounts) : 0,
                 maxMonth: monthKeys.length ? Math.max.apply(null, monthKeys.map(k => months[k])) : 0,
                 monthStreak: monthStreak,
+                spanDays: spanDays,
+                tagCount: tagCount,
+                fullProduction: fullProduction,
                 perContinent: perContinent,
                 touchedContinents: real.filter(c => perContinent[c].done > 0).length,
                 fullContinents: real.filter(c => perContinent[c].total > 0 && perContinent[c].done === perContinent[c].total),
-                sharedContinents: real.filter(c => perContinent[c].riley > 0 && perContinent[c].murry > 0).length
+                sharedContinents: real.filter(c => perContinent[c].riley > 0 && perContinent[c].murry > 0).length,
+                grandTour: real.every(c => perContinent[c].done >= 2)
             };
         }
 
@@ -2787,6 +2989,7 @@
             document.getElementById('cuisine').value = dinner ? (dinner.cuisine || '') : '';
             document.getElementById('difficulty').value = dinner ? (dinner.difficulty || '') : '';
             resetPhotoField(dinner ? (dinner.photos || []) : []);
+            renderVibeChips(dinner ? (dinner.tags || []) : []);
 
             document.getElementById('countryModal').classList.add('active');
             document.getElementById('familyCode').focus();
@@ -2797,6 +3000,7 @@
             document.getElementById('countryModal').classList.remove('active');
             document.getElementById('countryForm').reset();
             resetPhotoField([]);
+            renderVibeChips([]);
             currentCountry = null;
         }
 
@@ -2809,6 +3013,7 @@
             const cuisine = document.getElementById('cuisine').value.trim();
             const difficulty = document.getElementById('difficulty').value;
             const date = document.getElementById('dinnerDate').value || '';
+            const tags = readVibeChips();
 
             if (familyCode !== 'riley' && familyCode !== 'murry') {
                 toast('Family code must be "riley" or "murry"', 'err');
@@ -2845,6 +3050,7 @@
                 rec.cuisine = cuisine;
                 rec.difficulty = difficulty;
                 rec.date = date;
+                rec.tags = tags;
                 rec.photos = photos;
                 rec.photo = photos[0] || '';   // compatibility with the older backend
 
@@ -3005,6 +3211,11 @@
                            </div>`
                         : '';
 
+                    const tagList = dinner.tags || [];
+                    const vibeHtml = tagList.length
+                        ? `<div class="country-vibes" title="${escapeHtml(tagList.map(t => (VIBE_BY_ID[t] || {}).label).filter(Boolean).join(' · '))}">${tagList.map(t => (VIBE_BY_ID[t] || {}).ico || '').join('')}</div>`
+                        : '';
+
                     li.innerHTML = `
                         <div class="country-info">
                             <div class="country-name">${escapeHtml(countryName)}</div>
@@ -3013,6 +3224,7 @@
                             ${detailsHtml}
                             ${wikiHtml}
                             ${dateHtml}
+                            ${vibeHtml}
                             ${photoHtml}
                         </div>
                         <div class="country-actions">
@@ -3073,30 +3285,54 @@
             }
 
             document.getElementById('shareBtn').hidden = s.total === 0;
+            renderAchievements(s);
+        }
 
-            // Achievements
-            const wrap = document.getElementById('achievements');
-            const unlocked = ACHIEVEMENTS.filter(a => a.test(s));
+        let achShowAll = false;
+        function toggleAchShowAll() {
+            achShowAll = !achShowAll;
+            renderAchievements(computeStats());
+        }
+
+        function renderAchievements(s) {
+            const wrap = document.getElementById('achWrap');
+            const grid = document.getElementById('achievements');
             const seen = loadSeenAchievements();
-            const fresh = unlocked.filter(a => seen.indexOf(a.id) === -1);
 
-            wrap.hidden = unlocked.length === 0;
-            wrap.innerHTML = ACHIEVEMENTS.map(a => {
-                const on = unlocked.indexOf(a) !== -1;
-                const isFresh = fresh.indexOf(a) !== -1;
-                let tip = (on ? '' : '🔒 ') + a.label + ' — ' + a.desc;
-                if (on && a.detail) { const d = a.detail(s); if (d) tip += ' (' + d + ')'; }
-                return '<span class="badge' + (on ? ' unlocked' : '') + (isFresh ? ' pop' : '') +
+            const rows = ACHIEVEMENTS.map(a => {
+                const st = achState(a, s);
+                return { a: a, on: st.on, cur: st.cur, target: st.target, fresh: st.on && seen.indexOf(a.id) === -1 };
+            });
+            const unlockedCount = rows.filter(r => r.on).length;
+
+            wrap.hidden = unlockedCount === 0 && s.total === 0;
+            document.getElementById('achCount').textContent = unlockedCount + ' / ' + ACHIEVEMENTS.length;
+
+            // Always show: unlocked + anything with progress started. Rest behind "Show all".
+            const visible = rows.filter(r => achShowAll || r.on || r.cur > 0);
+            const hiddenCount = rows.length - visible.length;
+            const toggle = document.getElementById('achToggle');
+            toggle.hidden = hiddenCount === 0 && !achShowAll;
+            toggle.textContent = achShowAll ? 'Show less' : 'Show all (' + hiddenCount + ' locked)';
+
+            grid.innerHTML = visible.map(r => {
+                const a = r.a;
+                const counting = r.target > 0;
+                let tip = (r.on ? '' : '🔒 ') + a.label + ' — ' + a.desc;
+                if (r.on && a.detail) { const d = a.detail(s); if (d) tip += ' (' + d + ')'; }
+                if (!r.on && counting) tip += '  ·  ' + r.cur + ' of ' + r.target;
+                const fill = (!r.on && counting && r.cur > 0)
+                    ? '<span class="badge-fill" style="width:' + Math.round((r.cur / r.target) * 100) + '%"></span>'
+                    : '';
+                return '<span class="badge' + (r.on ? ' unlocked' : '') + (r.fresh ? ' pop' : '') +
                     '" tabindex="0" data-tip="' + escapeHtml(tip) + '">' +
-                    '<span class="b-ico">' + a.ico + '</span>' + escapeHtml(a.label) + '</span>';
+                    '<span class="b-ico">' + a.ico + '</span>' + escapeHtml(a.label) + fill + '</span>';
             }).join('');
 
-            if (fresh.length && seen.length >= 0) {
-                // Only celebrate once the user has data loaded (avoid a burst on first page paint)
-                if (window.__achReady) {
-                    fresh.forEach(a => toast('Achievement unlocked — ' + a.label, 'ok'));
-                }
-                saveSeenAchievements(unlocked.map(a => a.id));
+            const freshOnes = rows.filter(r => r.fresh);
+            if (freshOnes.length) {
+                if (window.__achReady) freshOnes.forEach(r => toast('Achievement unlocked — ' + r.a.label, 'ok'));
+                saveSeenAchievements(rows.filter(r => r.on).map(r => r.a.id));
             }
         }
 
@@ -3636,6 +3872,7 @@
             const meta = [`<span class="tour-cap-badge ${fam}">${famLabel}</span>`];
             if (d.cuisine) meta.push(`<span>${escapeHtml(d.cuisine)}</span>`);
             if (d.difficulty) meta.push(`<span>${escapeHtml(d.difficulty.charAt(0).toUpperCase() + d.difficulty.slice(1))}</span>`);
+            if (d.tags && d.tags.length) meta.push(`<span>${d.tags.map(t => (VIBE_BY_ID[t] || {}).ico || '').join(' ')}</span>`);
             const kicker = `Dinner ${TOUR.idx + 1} of ${TOUR.order.length}` + (when ? ` &nbsp;&middot;&nbsp; ${escapeHtml(when)}` : '');
             const hero = (d.photos && d.photos[0]) || '';
             document.getElementById('tourCaption').innerHTML =

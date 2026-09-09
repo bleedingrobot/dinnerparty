@@ -17,12 +17,12 @@
  * SHEET STRUCTURE:
  * The script expects these columns in your sheet (will auto-create if needed):
  * A: Country | B: Family | C: Notes | D: Cuisine | E: Difficulty | F: DateAdded
- * G: Photos (pipe-separated URLs) | H: Date (the actual dinner date)
+ * G: Photos (pipe-separated URLs) | H: Date (dinner date) | I: Tags (pipe-separated)
  */
 
 // Number of data columns the script reads/writes
-var COLS = 8;
-var HEADERS = ['Country', 'Family', 'Notes', 'Cuisine', 'Difficulty', 'DateAdded', 'Photos', 'Date'];
+var COLS = 9;
+var HEADERS = ['Country', 'Family', 'Notes', 'Cuisine', 'Difficulty', 'DateAdded', 'Photos', 'Date', 'Tags'];
 
 // Normalise a cell that may hold a Date object or a string to "yyyy-MM-dd"
 function toDateString(v) {
@@ -160,9 +160,10 @@ function getAllData() {
   data.forEach(row => {
     const country = row[0];
     if (country) {
-      var photos = row[6]
-        ? String(row[6]).split('|').map(function (s) { return s.trim(); }).filter(Boolean)
-        : [];
+      var splitList = function (v) {
+        return v ? String(v).split('|').map(function (s) { return s.trim(); }).filter(Boolean) : [];
+      };
+      var photos = splitList(row[6]);
       result[country] = {
         family: row[1] || '',
         notes: row[2] || '',
@@ -171,7 +172,8 @@ function getAllData() {
         dateAdded: row[5] ? new Date(row[5]).toISOString() : '',
         photos: photos,
         photo: photos[0] || '',       // kept for older clients
-        date: toDateString(row[7])
+        date: toDateString(row[7]),
+        tags: splitList(row[8])
       };
     }
   });
@@ -199,9 +201,9 @@ function saveCountry(country, data) {
   }
 
   // Prepare data
-  var photos = Array.isArray(data.photos)
-    ? data.photos.filter(Boolean).join('|')
-    : (data.photos || data.photo || '');
+  var joinList = function (v) {
+    return Array.isArray(v) ? v.filter(Boolean).join('|') : (v || '');
+  };
   var dateStr = toDateString(data.date);
   const rowData = [
     country,
@@ -210,8 +212,9 @@ function saveCountry(country, data) {
     data.cuisine || '',
     data.difficulty || '',
     data.dateAdded ? new Date(data.dateAdded) : new Date(),
-    photos,
-    dateStr ? "'" + dateStr : ''   // leading apostrophe keeps Sheets from re-parsing it as a date
+    joinList(data.photos) || data.photo || '',
+    dateStr ? "'" + dateStr : '',   // leading apostrophe keeps Sheets from re-parsing it as a date
+    joinList(data.tags)
   ];
 
   if (rowIndex > -1) {
