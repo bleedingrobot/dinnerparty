@@ -850,6 +850,40 @@
             text-decoration: underline;
         }
 
+        /* ---------- Share card ---------- */
+        .btn-share {
+            width: 100%;
+            margin: 4px 0 8px;
+            padding: 11px;
+            font-weight: 600;
+            color: #fff;
+            border: none;
+            background: var(--accent-grad);
+            background-size: 180% 100%;
+        }
+        .btn-share:hover { box-shadow: 0 8px 24px -6px var(--riley-glow); background-position: 100% 0; }
+
+        .dialog-card.share-card { max-width: 560px; }
+        .share-preview {
+            margin-top: 16px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--glass-brd);
+            background: #05060c;
+            aspect-ratio: 1200 / 630;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .share-preview img { width: 100%; display: block; }
+        .share-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .share-actions .btn { flex: 1; min-width: 130px; }
+
         .section-title {
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1.08em;
@@ -1530,6 +1564,8 @@
 
                 <div class="achievements" id="achievements" hidden></div>
 
+                <button class="btn btn-share" id="shareBtn" onclick="openShareCard()" hidden>&#128248;&nbsp; Share progress</button>
+
                 <h2 class="section-title">
                     <span>Completed <span class="count-badge" id="completedCount">0</span></span>
                     <select class="sort-select" id="sortCompleted" onchange="updateUI()">
@@ -1644,6 +1680,18 @@
         <img id="lightboxImg" alt="Dinner photo">
         <button type="button" class="lb-nav lb-next" id="lbNext" aria-label="Next photo">&#8250;</button>
         <div class="lb-cap" id="lightboxCap"><span id="lbCapText"></span><span class="lb-count" id="lbCount"></span></div>
+    </div>
+
+    <!-- Share card -->
+    <div class="dialog" id="shareModal">
+        <div class="dialog-card share-card">
+            <div class="dialog-title">Share your progress</div>
+            <div class="share-preview" id="sharePreview"><div class="spinner"></div></div>
+            <div class="share-actions" id="shareActions"></div>
+            <div class="dialog-actions">
+                <button type="button" class="btn btn-secondary" id="shareClose">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Generic confirm / password dialog -->
@@ -2087,6 +2135,249 @@
         }
         function saveSeenAchievements(list) {
             try { localStorage.setItem('achievementsSeen', JSON.stringify(list)); } catch (e) { /* ignore */ }
+        }
+
+        // ---------- Share card ----------
+        const WORLD_COUNTRIES = 195;
+
+        async function loadCardFonts() {
+            if (!document.fonts || !document.fonts.load) return;
+            try {
+                await Promise.all([
+                    document.fonts.load('700 90px "Space Grotesk"'),
+                    document.fonts.load('600 26px "Space Grotesk"'),
+                    document.fonts.load('600 24px "Inter"'),
+                    document.fonts.load('500 20px "Inter"')
+                ]);
+            } catch (e) { /* system fonts fall back */ }
+        }
+
+        function roundRectPath(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        function drawCardMap(ctx, rx, ry, rw, rh) {
+            if (!geojsonData) return;
+            const latN = 82, latS = -56;
+            const project = (lng, lat) => [
+                rx + ((lng + 180) / 360) * rw,
+                ry + ((latN - lat) / (latN - latS)) * rh
+            ];
+            ctx.save();
+            roundRectPath(ctx, rx, ry, rw, rh, 20);
+            ctx.clip();
+            ctx.fillStyle = '#080a12';
+            ctx.fillRect(rx, ry, rw, rh);
+
+            function tracePolys(feature) {
+                const geom = feature.geometry;
+                if (!geom) return;
+                const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+                ctx.beginPath();
+                polys.forEach(poly => poly.forEach(ring => {
+                    ring.forEach((pt, i) => {
+                        const p = project(pt[0], pt[1]);
+                        if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+                    });
+                    ctx.closePath();
+                }));
+            }
+
+            geojsonData.features.forEach(f => {
+                if (dinnerData[f.properties.name]) return;
+                tracePolys(f);
+                ctx.fillStyle = 'rgba(150,160,182,0.10)';
+                ctx.fill('evenodd');
+                ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+            });
+            geojsonData.features.forEach(f => {
+                const d = dinnerData[f.properties.name];
+                if (!d) return;
+                const riley = d.family === 'riley';
+                tracePolys(f);
+                ctx.shadowColor = riley ? 'rgba(34,211,238,0.9)' : 'rgba(251,191,36,0.9)';
+                ctx.shadowBlur = 16;
+                ctx.fillStyle = riley ? 'rgba(34,211,238,0.88)' : 'rgba(251,191,36,0.88)';
+                ctx.fill('evenodd');
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = riley ? '#a5f3fc' : '#fde68a';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+
+            const vg = ctx.createLinearGradient(rx, ry, rx, ry + rh);
+            vg.addColorStop(0, 'rgba(8,10,18,0.5)');
+            vg.addColorStop(0.16, 'rgba(8,10,18,0)');
+            vg.addColorStop(0.84, 'rgba(8,10,18,0)');
+            vg.addColorStop(1, 'rgba(8,10,18,0.6)');
+            ctx.fillStyle = vg;
+            ctx.fillRect(rx, ry, rw, rh);
+            ctx.restore();
+        }
+
+        async function buildShareCard() {
+            await loadCardFonts();
+            const SCALE = 2, W = 1200, H = 630;
+            const canvas = document.createElement('canvas');
+            canvas.width = W * SCALE;
+            canvas.height = H * SCALE;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(SCALE, SCALE);
+
+            const s = computeStats();
+
+            const bg = ctx.createLinearGradient(0, 0, W, H);
+            bg.addColorStop(0, '#0a0b12');
+            bg.addColorStop(1, '#12131d');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+            [['rgba(34,211,238,0.16)', 130, 80, 360], ['rgba(168,85,247,0.15)', W - 120, H - 50, 420]].forEach(a => {
+                const rg = ctx.createRadialGradient(a[1], a[2], 10, a[1], a[2], a[3]);
+                rg.addColorStop(0, a[0]);
+                rg.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = rg;
+                ctx.fillRect(0, 0, W, H);
+            });
+
+            ctx.textBaseline = 'alphabetic';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '600 19px "Inter", system-ui, sans-serif';
+            ctx.fillText('W O R L D   D I N N E R   M A P', 60, 62);
+
+            ctx.font = '700 44px "Space Grotesk", system-ui, sans-serif';
+            let hx = 60;
+            ctx.fillStyle = '#22d3ee'; ctx.fillText('Riley', hx, 112); hx += ctx.measureText('Riley').width;
+            ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillText('  &  ', hx, 112); hx += ctx.measureText('  &  ').width;
+            ctx.fillStyle = '#fbbf24'; ctx.fillText('Murry', hx, 112);
+
+            drawCardMap(ctx, 60, 146, W - 120, 320);
+
+            ctx.font = '700 118px "Space Grotesk", system-ui, sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.shadowColor = 'rgba(0,0,0,0.65)';
+            ctx.shadowBlur = 22;
+            ctx.fillText(String(s.total), 66, 456);
+            ctx.shadowBlur = 0;
+            const numW = ctx.measureText(String(s.total)).width;
+            ctx.font = '500 24px "Inter", system-ui, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.75)';
+            ctx.fillText(s.total === 1 ? 'country dined' : 'countries dined', 76 + numW, 456);
+
+            const barX = 60, barW = 560, barH = 15, fy = 522;
+            const rileyFrac = s.total ? s.riley / s.total : 0.5;
+            ctx.font = '600 20px "Space Grotesk", system-ui, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#67e8f9';
+            ctx.fillText('Riley ' + s.riley, barX, fy - 12);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#fcd34d';
+            ctx.fillText(s.murry + ' Murry', barX + barW, fy - 12);
+            ctx.textAlign = 'left';
+            ctx.fillStyle = 'rgba(255,255,255,0.09)';
+            roundRectPath(ctx, barX, fy, barW, barH, 8);
+            ctx.fill();
+            ctx.save();
+            roundRectPath(ctx, barX, fy, barW, barH, 8);
+            ctx.clip();
+            ctx.fillStyle = '#22d3ee';
+            ctx.fillRect(barX, fy, barW * rileyFrac, barH);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(barX + barW * rileyFrac, fy, barW * (1 - rileyFrac), barH);
+            ctx.restore();
+
+            const list = tourList();
+            let latest = list.length ? list[list.length - 1] : '';
+            if (latest.length > 20) latest = latest.slice(0, 19) + '…';
+            ctx.font = '500 21px "Inter", system-ui, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            let foot = s.total + ' of ' + WORLD_COUNTRIES + ' countries';
+            if (latest) foot += '    ·    latest: ' + latest;
+            ctx.fillText(foot, 60, 584);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.font = '500 17px "Inter", system-ui, sans-serif';
+            ctx.fillText('bleedingrobot.github.io/dinnerparty', W - 60, 584);
+            ctx.textAlign = 'left';
+
+            return canvas;
+        }
+
+        function shareActionBtn(label, cls, fn) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'btn ' + cls;
+            b.textContent = label;
+            b.addEventListener('click', fn);
+            return b;
+        }
+
+        async function openShareCard() {
+            const modal = document.getElementById('shareModal');
+            const preview = document.getElementById('sharePreview');
+            const actions = document.getElementById('shareActions');
+            preview.innerHTML = '<div class="spinner"></div>';
+            actions.innerHTML = '';
+            modal.classList.add('active');
+
+            let blob;
+            try {
+                const canvas = await buildShareCard();
+                blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+            } catch (e) {
+                console.error('Share card failed:', e);
+                preview.innerHTML = '<div style="color:var(--text-dim);padding:22px;text-align:center">Could not build the card — try again.</div>';
+                return;
+            }
+            if (!blob) { preview.innerHTML = '<div style="color:var(--text-dim);padding:22px">Could not build the card.</div>'; return; }
+
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.alt = 'Progress card';
+            img.src = url;
+            preview.innerHTML = '';
+            preview.appendChild(img);
+
+            const file = new File([blob], 'dinner-map.png', { type: 'image/png' });
+            const caption = computeStats().total + ' countries and counting 🌍';
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                actions.appendChild(shareActionBtn('Share', 'btn-primary', async () => {
+                    try { await navigator.share({ files: [file], title: 'World Dinner Map', text: caption }); }
+                    catch (e) { /* cancelled */ }
+                }));
+            }
+            actions.appendChild(shareActionBtn('Download', 'btn-secondary', () => {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'dinner-map-' + new Date().toISOString().slice(0, 10) + '.png';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                toast('Image saved', 'ok');
+            }));
+            if (navigator.clipboard && window.ClipboardItem) {
+                actions.appendChild(shareActionBtn('Copy image', 'btn-secondary', async () => {
+                    try {
+                        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                        toast('Image copied to clipboard', 'ok');
+                    } catch (e) {
+                        toast('Could not copy — use Download instead', 'err');
+                    }
+                }));
+            }
+        }
+
+        function closeShareCard() {
+            document.getElementById('shareModal').classList.remove('active');
         }
 
         // Apply light / dark theme
@@ -2696,6 +2987,8 @@
                         '</div>';
                 }).join('');
             }
+
+            document.getElementById('shareBtn').hidden = s.total === 0;
 
             // Achievements
             const wrap = document.getElementById('achievements');
@@ -3569,11 +3862,18 @@
             }
         });
 
-        // Keyboard: Escape closes the lightbox or modal; arrows page the lightbox
+        // Share card modal close
+        document.getElementById('shareClose').addEventListener('click', closeShareCard);
+        document.getElementById('shareModal').addEventListener('click', function(e) {
+            if (e.target === this) closeShareCard();
+        });
+
+        // Keyboard: Escape closes the lightbox / share card / modal; arrows page the lightbox
         document.addEventListener('keydown', function(e) {
             const lbOpen = document.getElementById('lightbox').classList.contains('active');
             if (e.key === 'Escape') {
                 if (lbOpen) { closeLightbox(); return; }
+                if (document.getElementById('shareModal').classList.contains('active')) { closeShareCard(); return; }
                 closeModal();
             } else if (lbOpen && e.key === 'ArrowLeft') {
                 lbStep(-1);
